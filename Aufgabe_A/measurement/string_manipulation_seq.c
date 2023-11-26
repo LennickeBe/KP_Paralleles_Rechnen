@@ -54,23 +54,3 @@ int countCharSeq(char *string, int len_string, char c)
 	}
 	return count;
 }
-
-
-void oof_main()
-{
-	char *test_word;
-	int count;
-	test_word = (char *) malloc(8*sizeof(char));
-	strncpy(test_word, "classic", 8);
-
-	printf("%s\n", test_word);
-	toUppercaseSeq(test_word, 8);
-	printf("%s\n", test_word);
-	toLowercaseSeq(test_word, 8);
-	printf("%s\n", test_word);
-
-	count = countCharSeq(test_word, 8, 'c');
-	printf("%d\n", count);
-	
-	free(test_word);
-}

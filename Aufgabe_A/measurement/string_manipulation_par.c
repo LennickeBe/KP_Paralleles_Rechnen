@@ -6,6 +6,12 @@
 
 #include "string_manipulation_par.h"
 
+__m256i upper_low_limit;
+__m256i lower_low_limit;
+__m256i upper_up_limit;
+__m256i lower_up_limit;
+__m256i register_of_32;
+
 /*
  * Turn string in register "string" to uppercase
  * returns 1 if there has been an error, 0 if there has been no error
@@ -174,57 +180,6 @@ int countCharPar(char * string, int len_string,  char c)
 	return count;
 }
 
-/*
- * returns a random int within the given range
- * utilizes the rand() method from math.h
- */
-int random_int(int min, int max){
-   return min + rand() / (RAND_MAX / (max - min + 1) + 1);
-}
-
-
-int generateString(char *str, size_t size)
-{
-    if (size) 
-    {
-        for (size_t n = 0; n < size-1; n++)
-	{
-		str[n] = (char) random_int(32, 126);
-        }
-        str[size-1] = '\0';
-    }
-    else
-    {
-	    return -1;
-    }
-    return 0;
-}
-
-
-char* rand_string_alloc(size_t size)
-{
-     char *s = malloc(size);
-     if (s) {
-         generateString(s, size);
-     }
-     return s;
-}
-
-void printBits(size_t const size, void const * const ptr)
-{
-    unsigned char *b = (unsigned char*) ptr;
-    unsigned char byte;
-    int i, j;
-
-    for (i = size-1; i >= 0; i--) {
-        for (j = 7; j >= 0; j--) {
-            byte = (b[i] >> j) & 1;
-            printf("%u", byte);
-        }
-	printf("\n");
-    }
-    puts("");
-}
 
 void init_register() {
 	// register with chars '<' than a
@@ -237,34 +192,4 @@ void init_register() {
 	upper_up_limit = _mm256_set1_epi8('[');
 	// register with the 8-bit values '32'
 	register_of_32 = _mm256_set1_epi8(' ');
-}
-
-
-
-int no_main()
-{
-	char *test_word, *result_word;
-	int count = 0;
-
-	result_word = (char *) malloc(32 * sizeof(char));
-
-	init_register();	
-
-	test_word = rand_string_alloc(33);
-	printf("test word before:\n%s\n", test_word);
-	toUppercasePar(test_word, strlen(test_word));
-	printf("test word after:\n%s\n", test_word);
-	toLowercasePar(test_word, strlen(test_word));
-	printf("test word after:\n%s\n", test_word);
-
-	char *count_word; 
-	count_word = rand_string_alloc(12);
-	count = countCharPar(count_word, 12, 'N');
-	printf("count word %s\n", count_word);
-	printf("has %d\n", count);
-		
-	free(test_word);
-	free(result_word);
-	free(count_word);
-	return 0;
 }

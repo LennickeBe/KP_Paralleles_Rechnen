@@ -64,7 +64,7 @@ void printBits(size_t const size, void const * const ptr)
 
 int main()
 {
-	char *test_word, *result_word;
+	char *test_word;
 	int count; 	
 	// 1000:
 	test_word = rand_string_alloc(33);
@@ -79,7 +79,7 @@ int main()
 	// register with the 8-bit values '32'
 	//	register_of_32 = _mm256_set1_epi8(' ');
 
-	init_registers();	
+	init_register();	
 
 	printf("test word before:\n%s\n", test_word);
 	toUppercasePar(test_word, strlen(test_word));
@@ -97,7 +97,6 @@ int main()
 
 	
 	free(test_word);
-	free(result_word);
 	free(count_word);
 	return 0;
 }
