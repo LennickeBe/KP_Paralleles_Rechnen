@@ -171,7 +171,6 @@ int countCharPar(char * string, int len_string,  char c)
 		filler_string = (char*) malloc(32*sizeof(char));
 		// remaining chars into allocated 32 bytes memory
 		strncpy(filler_string, string, filler_size);
-		printf("%s\n", filler_string);
 		xmm = _mm256_loadu_si256((__m256i*) filler_string);
 		count += regCountChar(&xmm, c);
 

@@ -61,42 +61,78 @@ void printBits(size_t const size, void const * const ptr)
     puts("");
 }
 
+int measure(char *string, int len_string)
+{
+	// string gets changed so we work with duplicates to be able to reset
+	char *seq_string, *par_string;
+	seq_string = malloc(len_string * sizeof(char));
+	par_string = malloc(len_string * sizeof(char));
+	strncpy(seq_string, string, len_string);
+	strncpy(par_string, string, len_string);
+
+	// start with count as no reset necessary after
+	int count;
+	count = countCharPar(par_string, len_string, 'c');
+	printf("count_par: %d\n", count);
+	count = countCharSeq(seq_string, len_string, 'c');
+	printf("count_seq: %d\n\n", count);
+
+
+	printf("%s\n", string);
+
+	// uppercase
+	toUppercasePar(par_string, len_string);
+	printf("upper_par:\n%s\n", par_string);
+	toUppercaseSeq(seq_string, len_string);
+	printf("upper_seq:\n%s\n\n", seq_string);
+
+	// reset
+	strncpy(seq_string, string, len_string);
+	strncpy(par_string, string, len_string);
+
+	// lowercase
+	toLowercasePar(par_string, len_string);
+	printf("lower_par:\n%s\n", par_string);
+	toLowercaseSeq(seq_string, len_string);
+	printf("lower_seq:\n%s\n\n", seq_string);
+
+	free(par_string);
+	free(seq_string);
+	return 0;
+}
+	
+int measurement(FILE *file, int iterations, int len_string)
+{
+	char *string;
+	string = rand_string_alloc(len_string);
+	fprintf(file,
+		"count_par,count_seq,upper_par,upper_seq,lower_par,lower_seq\n");
+	
+}
+
 
 int main()
 {
 	char *test_word;
-	int count; 	
+	int len_string; 	
+		
+	init_register();
+	
 	// 1000:
-	test_word = rand_string_alloc(33);
-	// register with chars '<' than a
-	//lower_low_limit = _mm256_set1_epi8('`');
-	// register with chars '>' than z
-	//upper_low_limit = _mm256_set1_epi8('{');
-	// register with chars '<' than A
-	//lower_up_limit = _mm256_set1_epi8('@');
-	// register with chars '>' than Z
-	//upper_up_limit = _mm256_set1_epi8('[');
-	// register with the 8-bit values '32'
-	//	register_of_32 = _mm256_set1_epi8(' ');
+	len_string = 10;
+	test_word = rand_string_alloc(len_string);
+	measure(test_word, len_string);
+	free(test_word);	
 
-	init_register();	
-
-	printf("test word before:\n%s\n", test_word);
-	toUppercasePar(test_word, strlen(test_word));
-	printf("test word after:\n%s\n", test_word);
-	toLowercasePar(test_word, strlen(test_word));
-	printf("test word after:\n%s\n", test_word);
-
-	char *count_word; 
-	count_word = rand_string_alloc(12);
-	count = countCharPar(count_word, 12, 'N');
-	printf("count word %s\n", count_word);
-	printf("has %d\n", count);
-	
-
-
-	
+	len_string = 32;
+	test_word = rand_string_alloc(len_string);
+	measure(test_word, len_string);
 	free(test_word);
-	free(count_word);
+	
+	len_string = 33;
+	test_word = rand_string_alloc(len_string);
+	measure(test_word, len_string);
+	free(test_word);
+
 	return 0;
 }
