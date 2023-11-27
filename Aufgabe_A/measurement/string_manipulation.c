@@ -61,7 +61,7 @@ void printBits(size_t const size, void const * const ptr)
     puts("");
 }
 
-int measure(char *string, int len_string)
+int measure(FILE *file, char *string, int len_string)
 {
 	// string gets changed so we work with duplicates to be able to reset
 	char *seq_string, *par_string;
@@ -104,10 +104,15 @@ int measure(char *string, int len_string)
 int measurement(FILE *file, int iterations, int len_string)
 {
 	char *string;
+	int i;
 	string = rand_string_alloc(len_string);
 	fprintf(file,
 		"count_par,count_seq,upper_par,upper_seq,lower_par,lower_seq\n");
-	
+	for(i = 0; i < iterations; i++)
+	{
+
+		measure(file, string, len_string);
+	}
 }
 
 
@@ -115,23 +120,31 @@ int main()
 {
 	char *test_word;
 	int len_string; 	
-		
+	FILE *file;
+
 	init_register();
-	
+
+	// 1000
+	file = fopen("string_times_1000.csv", "w");
+	measurement(file, 100, 1000);
+	fclose(file);
+	return 0;
+
 	// 1000:
 	len_string = 10;
 	test_word = rand_string_alloc(len_string);
-	measure(test_word, len_string);
+	measure(file, test_word, len_string);
 	free(test_word);	
+	
 
 	len_string = 32;
 	test_word = rand_string_alloc(len_string);
-	measure(test_word, len_string);
+	measure(file, test_word, len_string);
 	free(test_word);
 	
 	len_string = 33;
 	test_word = rand_string_alloc(len_string);
-	measure(test_word, len_string);
+	measure(file, test_word, len_string);
 	free(test_word);
 
 	return 0;

@@ -41,9 +41,9 @@ int toUppercasePar(char *string, int len_string)
 
 	for ( i=0; i<=len_string-32; i+=32)
 	{
-		xmm = _mm256_load_si256((__m256i*) string);
+		xmm = _mm256_loadu_si256((__m256i*) string);
 		regToUppercase(&xmm);
-		_mm256_store_si256((__m256i*) string, xmm);
+		_mm256_storeu_si256((__m256i*) string, xmm);
 		string+=32;
 	}
 
@@ -93,9 +93,9 @@ int toLowercasePar(char *string, int len_string)
 
 	for ( i=0; i<=len_string-32; i+=32)
 	{
-		xmm = _mm256_load_si256((__m256i*) string);
+		xmm = _mm256_loadu_si256((__m256i*) string);
 		regToLowercase(&xmm);
-		_mm256_store_si256((__m256i*) string, xmm);
+		_mm256_storeu_si256((__m256i*) string, xmm);
 		string+=32;
 	}
 
@@ -151,7 +151,7 @@ int regCountChar(__m256i *string, char c)
  * returns -1 if there has been an error, and the number of appearences if
  * there has been no error
  */
-int countCharPar(char * string, int len_string,  char c)
+int countCharPar(char *string, int len_string,  char c)
 {
 	int i, filler_size, count=0;
 	char *filler_string;
@@ -159,7 +159,7 @@ int countCharPar(char * string, int len_string,  char c)
 
 	for ( i=0; i<=len_string-32; i+=32)
 	{
-		xmm = _mm256_load_si256((__m256i*) string);
+		xmm = _mm256_loadu_si256((__m256i*) string);
 		count += regCountChar(&xmm, c);
 		string+=32;
 	}
