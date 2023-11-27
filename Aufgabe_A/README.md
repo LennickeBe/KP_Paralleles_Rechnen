@@ -36,7 +36,6 @@ Anschließend das Repository an geeigneter Stelle clonen.
 
 ```
 git clone https://github.com/LennickeBe/KP_Paralleles_Rechnen.git
-cd KP_Paralleles_Rechnen/Aufgabe_A/measurement
 ```
 
 Eine Messung wird mit dem sbatch script 'run.sh' im Repository unter 'Aufgabe_A/measurement' gestartet.
