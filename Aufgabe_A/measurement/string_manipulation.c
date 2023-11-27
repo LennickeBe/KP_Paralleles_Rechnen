@@ -4,6 +4,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+
+
+int time_diff_in_ns(struct timespec start, struct timespec end)
+{
+	return (1000000000 * (end.tv_sec - start.tv_sec) +
+		(end.tv_nsec - start.tv_nsec));
+}
+
 
 /*
  * returns a random int within the given range
@@ -63,6 +72,9 @@ void printBits(size_t const size, void const * const ptr)
 
 int measure(FILE *file, char *string, int len_string)
 {
+	int par_count, seq_count;
+	struct timespec start, end;
+	
 	// string gets changed so we work with duplicates to be able to reset
 	char *seq_string, *par_string;
 	seq_string = malloc(len_string * sizeof(char));
@@ -71,31 +83,57 @@ int measure(FILE *file, char *string, int len_string)
 	strncpy(par_string, string, len_string);
 
 	// start with count as no reset necessary after
-	int count;
-	count = countCharPar(par_string, len_string, 'c');
-	printf("count_par: %d\n", count);
-	count = countCharSeq(seq_string, len_string, 'c');
-	printf("count_seq: %d\n\n", count);
+// count
+	clock_gettime(CLOCK_MONOTONIC, &start);	
+	par_count = countCharPar(par_string, len_string, 'c');
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	fprintf(file, "%d,", time_diff_in_ns(start, end));	
+	clock_gettime(CLOCK_MONOTONIC, &start);	
+	seq_count = countCharSeq(seq_string, len_string, 'c');
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	fprintf(file, "%d,", time_diff_in_ns(start, end));	
+	if (par_count != seq_count)
+	{
+		fprintf(stderr, "Counting does not match up.\n");
+		return 1;
+	}
 
-
-	printf("%s\n", string);
-
-	// uppercase
+// uppercase
+	clock_gettime(CLOCK_MONOTONIC, &start);	
 	toUppercasePar(par_string, len_string);
-	printf("upper_par:\n%s\n", par_string);
-	toUppercaseSeq(seq_string, len_string);
-	printf("upper_seq:\n%s\n\n", seq_string);
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	fprintf(file, "%d,", time_diff_in_ns(start, end));	
 
-	// reset
+	clock_gettime(CLOCK_MONOTONIC, &start);	
+	toUppercaseSeq(seq_string, len_string);
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	fprintf(file, "%d,", time_diff_in_ns(start, end));	
+	if (strcmp(par_string, seq_string))
+	{
+		fprintf(stderr, "toUppercase does not match up.\n");
+		return 1;
+	}
+
+// reset
 	strncpy(seq_string, string, len_string);
 	strncpy(par_string, string, len_string);
 
-	// lowercase
+// lowercase
+	clock_gettime(CLOCK_MONOTONIC, &start);	
 	toLowercasePar(par_string, len_string);
-	printf("lower_par:\n%s\n", par_string);
-	toLowercaseSeq(seq_string, len_string);
-	printf("lower_seq:\n%s\n\n", seq_string);
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	fprintf(file, "%d,", time_diff_in_ns(start, end));	
 
+	clock_gettime(CLOCK_MONOTONIC, &start);	
+	toLowercaseSeq(seq_string, len_string);
+	clock_gettime(CLOCK_MONOTONIC, &end);
+	fprintf(file, "%d\n", time_diff_in_ns(start, end));	
+	if (strcmp(par_string, seq_string))
+	{
+		fprintf(stderr, "toLowercase does not match up.\n");
+		return 1;
+	}
+	
 	free(par_string);
 	free(seq_string);
 	return 0;
@@ -111,8 +149,13 @@ int measurement(FILE *file, int iterations, int len_string)
 	for(i = 0; i < iterations; i++)
 	{
 
-		measure(file, string, len_string);
+		if (measure(file, string, len_string))
+		{
+			return 1;
+		}
 	}
+	free(string);
+	return 0;
 }
 
 
