@@ -200,23 +200,4 @@ int main()
 	fclose(file);
 
 	return 0;
-
-	// 1000:
-	len_string = 10;
-	test_word = rand_string_alloc(len_string);
-	measure(file, test_word, len_string);
-	free(test_word);	
-	
-
-	len_string = 32;
-	test_word = rand_string_alloc(len_string);
-	measure(file, test_word, len_string);
-	free(test_word);
-	
-	len_string = 33;
-	test_word = rand_string_alloc(len_string);
-	measure(file, test_word, len_string);
-	free(test_word);
-
-	return 0;
 }
