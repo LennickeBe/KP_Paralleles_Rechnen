@@ -167,10 +167,38 @@ int main()
 
 	init_register();
 
-	// 1000
-	file = fopen("string_times_1000.csv", "w");
-	measurement(file, 100, 1000);
+	// 10000
+	file = fopen("string_times_10000.csv", "w");
+	if (measurement(file, 100, 10000))
+	{
+		return 1;
+	}
 	fclose(file);
+	
+	// 100000
+	file = fopen("string_times_100000.csv", "w");
+	if (measurement(file, 100, 100000))
+	{
+		return 1;
+	}
+	fclose(file);
+
+	// 1000000
+	file = fopen("string_times_1000000.csv", "w");
+	if (measurement(file, 100, 1000000))
+	{
+		return 1;
+	}		
+	fclose(file);
+
+	// 100000000
+	file = fopen("string_times_100000000.csv", "w");
+	if (measurement(file, 100, 100000000))
+	{
+		return 1;
+	}
+	fclose(file);
+
 	return 0;
 
 	// 1000:
