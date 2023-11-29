@@ -109,6 +109,9 @@ def complex_plot(strings: dict,
                  means_seq: list,
                  iter_list: list) -> None:
     fig, ax = plt.subplots()
+    plt.title(strings["title"])
+    plt.xlabel(strings["xlabel"])
+    plt.ylabel(strings["ylabel"])
     ax.set_xscale("log")
     ax.set_yscale("log")
     plt.scatter(iter_list, means_par, color=strings["color_par"], marker=strings["marker_par"], label="mean parallel")
