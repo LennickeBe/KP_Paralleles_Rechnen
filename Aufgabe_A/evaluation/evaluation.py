@@ -3,7 +3,7 @@
 Script to read the data for the string manipulation measurement
 and plot the results.
 """
-
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,7 +17,8 @@ def get_strings(key: str) -> dict:
                 "color_par":"green",
                 "marker_par":"^",
                 "color_seq":"orange",
-                "marker_seq":"s"
+                "marker_seq":"s",
+                "filename":"../report/images/comp_count_"
                 },
             "up": {"title": f"Processing time to uppercase chars in a string with ",
                 "ylabel":"time in ns",
@@ -25,7 +26,8 @@ def get_strings(key: str) -> dict:
                 "color_par":"green",
                 "marker_par":"^",
                 "color_seq":"orange",
-                "marker_seq":"s"
+                "marker_seq":"s",
+                "filename":"../report/images/comp_upper_"
                 },
             "low": {"title": f"Processing time to lowercase chars in a string with ",
                 "ylabel":"time in ns",
@@ -33,23 +35,26 @@ def get_strings(key: str) -> dict:
                 "color_par":"green",
                 "marker_par":"^",
                 "color_seq":"orange",
-                "marker_seq":"s"
+                "marker_seq":"s",
+                "filename":"../report/images/comp_upper_"
                 },
-            "complex_count": {"title": f"Mean processing time to lowercase in a strings of different length.",
+            "complex_count": {"title": f"Mean processing time to count chars in strings of different length.",
                 "ylabel":"time in ns",
                 "xlabel":"string length",
                 "color_par":"green",
                 "marker_par":"^",
                 "color_seq":"orange",
-                "marker_seq":"s"
+                "marker_seq":"s",
+                "filename":"../report/images/complex_count.png"
                 },
-            "complex_up": {"title": f"Mean processing time to lowercase chars in a string with of different length.",
+            "complex_up": {"title": f"Mean processing time to uppercase string with of different length.",
                 "ylabel":"time in ns",
                 "xlabel":"string length",
                 "color_par":"green",
                 "marker_par":"^",
                 "color_seq":"orange",
-                "marker_seq":"s"
+                "marker_seq":"s",
+                "filename":"../report/images/complex_upper.png"
                 },
             "complex_low": {"title": f"Mean processing time to lowercase chars in a string with of different length.",
                 "ylabel":"time in ns",
@@ -57,7 +62,8 @@ def get_strings(key: str) -> dict:
                 "color_par":"green",
                 "marker_par":"^",
                 "color_seq":"orange",
-                "marker_seq":"s"
+                "marker_seq":"s",
+                "filename":"../report/images/complex_lower.png"
                 }
             }[key]
 
@@ -71,7 +77,7 @@ def comparison_plot(strings: dict,
     print(mean_par, mean_seq)
 
     fig, ax = plt.subplots()
-    plt.title(strings["title"]+f"{iterations} chars.")
+    plt.title(strings["title"]+f"{iterations} chars.", pad=20)
     plt.ylabel(strings["ylabel"])
     plt.xlabel(strings["xlabel"])
     plt.hlines(mean_par, series_par.index.values[0], series_par.index.values[-1], color=strings["color_par"], label="parallel mean")
@@ -79,7 +85,8 @@ def comparison_plot(strings: dict,
     plt.scatter(series_par.index.values, series_par.values, color=strings["color_par"], label="parallel", marker=strings["marker_par"])
     plt.scatter(series_seq.index.values, series_seq.values, color=strings["color_seq"], label="sequential", marker=strings["marker_seq"])
     plt.legend()
-    plt.show()
+    plt.savefig(strings["filename"] + f"{iterations}.png", bbox_inches = "tight")
+    #plt.show()
     plt.clf()
     plt.cla()
     plt.close()
@@ -104,12 +111,13 @@ def comparison_plots(df: pd.DataFrame, iterations: int):
     series_seq = df["lower_seq"]
     comparison_plot(strings, iterations, series_par, series_seq)
 
+
 def complex_plot(strings: dict,
                  means_par: list,
                  means_seq: list,
                  iter_list: list) -> None:
     fig, ax = plt.subplots()
-    plt.title(strings["title"])
+    plt.title(strings["title"], pad=20)
     plt.xlabel(strings["xlabel"])
     plt.ylabel(strings["ylabel"])
     ax.set_xscale("log")
@@ -117,11 +125,11 @@ def complex_plot(strings: dict,
     plt.scatter(iter_list, means_par, color=strings["color_par"], marker=strings["marker_par"], label="mean parallel")
     plt.scatter(iter_list, means_seq, color=strings["color_par"], marker=strings["marker_seq"], label="mean sequential")
     plt.legend()
-    plt.show()
+    plt.savefig(strings["filename"], bbox_inches = "tight")
+    #plt.show()
     plt.clf()
     plt.cla()
     plt.close()
-
 
 
 def complex_plots(df_10k: pd.DataFrame,
@@ -165,6 +173,9 @@ def main():
     df_100k = pd.read_csv("./data/string_times_100000.csv")
     df_1M = pd.read_csv("./data/string_times_1000000.csv")
     df_100M = pd.read_csv("./data/string_times_100000000.csv")
+
+    if not os.path.isdir("../report/images"):
+        os.mkdir("../report/images")
 
     complex_plots(df_10k, df_100k, df_1M, df_100M)
 
