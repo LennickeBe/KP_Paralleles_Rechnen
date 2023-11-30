@@ -51,6 +51,13 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# latex files
+*.aux
+*.log
+*.synctex.gz
+*.toc
+
+
 # own edit
 testing/
 template/
