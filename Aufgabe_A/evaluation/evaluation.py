@@ -166,19 +166,47 @@ def complex_plots(df_10k: pd.DataFrame,
     strings = get_strings("complex_low")
     complex_plot(strings, means_par, means_seq, iter_list)
 
+def write_tab_line(f,
+                   iterations :int,
+                   data_par: pd.Series,
+                   data_seq: pd.Series) -> None:
+        mean_par = np.mean(data_par)
+        mean_seq = np.mean(data_seq)
+        std_par = np.std(data_par)
+        std_seq = np.std(data_seq)
+        f.write(f"{iterations} & {mean_par:.2f} & {std_par:.2f} & {mean_seq:.2f} & {std_seq:.2f} \\\\\n")
+
+
+def write_tab_lines(f,
+                    df_10k, df_100k, df_1M, df_100M,
+                    string_par: str, string_seq: str) -> None:
+    # header
+    #f.write("\\begin{tabular}{|c|r|l|r|l|}\n\hline\n\multicolumn{1}{|c|}{String Länge}& \multicolumn{2}{c|}{parallel in ns} & \multicolumn{2}{c|}{sequentiell in ns} \\\\\n\cline{2-5}\n& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\\n\hline\n")
+
+    write_tab_line(f, 10000, df_10k[string_par], df_10k[string_seq])
+    write_tab_line(f, 100000, df_100k[string_par], df_100k[string_seq])
+    write_tab_line(f, 1000000, df_1M[string_par], df_1M[string_seq])
+    write_tab_line(f, 100000000, df_100M[string_par], df_100M[string_seq])
+
+    # footer
+    #f.write("\end{tabular}\n\label{Tab:counttab}\n")
+
 
 def create_tabulars(df_10k, df_100k, df_1M, df_100M):
     if not os.path.isdir("../report/tabulars"):
         os.mkdir("../report/tabulars")
-    
+
     # count
     with open("../report/tabulars/count_tab.txt","w") as f:
-        mean_par = np.mean(df_10k["count_par"])
-        mean_seq = np.mean(df_10k["count_seq"])
-        std_par = np.std(df_10k["count_par"])
-        std_seq = np.std(df_10k["count_seq"])
-        f.write(f"10000 & {mean_par:.2f} & {std_par:.2f} & {mean_seq:.2f} & {std_seq:.2f} \\\\")
+        write_tab_lines(f, df_10k, df_100k, df_1M, df_100M, "count_par", "count_seq")
 
+    # upper
+    with open("../report/tabulars/upper_tab.txt","w") as f:
+        write_tab_lines(f, df_10k, df_100k, df_1M, df_100M, "upper_par", "upper_seq")
+
+    # count
+    with open("../report/tabulars/lower_tab.txt","w") as f:
+        write_tab_lines(f, df_10k, df_100k, df_1M, df_100M, "lower_par", "lower_seq")
 
 
 def main():
@@ -186,6 +214,8 @@ def main():
     df_100k = pd.read_csv("./data/string_times_100000.csv")
     df_1M = pd.read_csv("./data/string_times_1000000.csv")
     df_100M = pd.read_csv("./data/string_times_100000000.csv")
+    create_tabulars(df_10k, df_100k, df_1M, df_100M)
+
 
     if not os.path.isdir("../report/images"):
         os.mkdir("../report/images")
@@ -197,9 +227,7 @@ def main():
     comparison_plots(df_1M, 1000000)
     comparison_plots(df_100M, 100000000)
 
-    create_tabulars(df_10k, df_100k, df_1M, df_100M)
-
-
+   
 
 if __name__ == "__main__":
     main()

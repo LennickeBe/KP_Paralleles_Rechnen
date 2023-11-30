@@ -55,7 +55,7 @@ Die logarithmischen Skalen wurden gewählt, weil sonst die Messpunkte von 10k, 1
 
 \begin{figure}
 	\begin{center}
-		\includegraphics[width=0.7\textwidth]{images/mean_upper.png}
+		\includegraphics[width=0.7\textwidth]{images/complex_upper.png}
 		\caption{Durchschnittliche Durchführungszeit von toUppercase() in Abhängigkeit von der Stringlänge.}
 		\label{fig:mean_upper}
 	\end{center}
@@ -63,7 +63,7 @@ Die logarithmischen Skalen wurden gewählt, weil sonst die Messpunkte von 10k, 1
 
 \begin{figure}
 	\begin{center}
-		\includegraphics[width=0.7\textwidth]{images/mean_lower.png}
+		\includegraphics[width=0.7\textwidth]{images/complex_lower.png}
 		\caption{Durchschnittliche Durchführungszeit von toLowercase() in Abhängigkeit von der Stringlänge.}
 		\label{fig:mean_upper}
 	\end{center}
@@ -71,7 +71,7 @@ Die logarithmischen Skalen wurden gewählt, weil sonst die Messpunkte von 10k, 1
 
 \begin{figure}
 	\begin{center}
-		\includegraphics[width=0.7\textwidth]{images/mean_count.png}
+		\includegraphics[width=0.7\textwidth]{images/complex_count.png}
 		\caption{Durchschnittliche Durchführungszeit von countChar() in Abhängigkeit von der Stringlänge.}
 		\label{fig:mean_upper}
 	\end{center}
@@ -85,14 +85,16 @@ Es ist deutlich zu sehen, dass die sequentielle Ausführung in für jede Stringl
 \newline
 \begin{tabular}{|c|r|l|r|l|}
 	\hline
-	\multicolumn{1}{|c|}{String Länge} & \multicolumn{2}{c|}{parallel} & \multicolumn{2}{c|}{sequentiell} \\
+	\multicolumn{1}{|c|}{String Länge} & \multicolumn{2}{c|}{parallel in ns} & \multicolumn{2}{c|}{sequentiell in ns} \\
 	\cline{2-5}
 	& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\
 	\hline
-	10000& 		
-	100000&		
-	1000000&	
-	100000000&	
+	%\input{tabulars/lower_tab.txt} does some weird stuff and I was unable to figure out why
+	10000 & 13812.89 & 2438.83 & 229699.60 & 75923.16 \\
+	100000 & 74628.35 & 37815.71 & 791077.37 & 701784.15 \\
+	1000000 & 781054.95 & 301556.31 & 7308699.36 & 3514745.39 \\
+	100000000 & 56888725.52 & 5992509.42 & 458731319.02 & 61956346.45 \\
+	\hline
 \end{tabular}
 \label{Tab:uppertab}
 
@@ -103,14 +105,16 @@ Es ist deutlich zu sehen, dass die sequentielle Ausführung in für jede Stringl
 \newline
 \begin{tabular}{|c|r|l|r|l|}
 	\hline
-	\multicolumn{1}{|c|}{String Länge} & \multicolumn{2}{c|}{parallel} & \multicolumn{2}{c|}{sequentiell} \\
+	\multicolumn{1}{|c|}{String Länge} & \multicolumn{2}{c|}{parallel in ns} & \multicolumn{2}{c|}{sequentiell in ns} \\
 	\cline{2-5}
 	& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\
 	\hline
-	10000& 		
-	100000&		
-	1000000&	
-	100000000&	
+	%\input{tabulars/upper_tab.txt} does some weird stuff and I was unable to figure out why
+	10000 & 13718.13 & 2732.00 & 311293.96 & 435716.85 \\
+	100000 & 70663.97 & 33116.91 & 868215.45 & 790953.91 \\
+	1000000 & 776718.16 & 328559.81 & 8446686.96 & 4419921.43 \\
+	100000000 & 73948537.61 & 9256554.24 & 521830060.76 & 58353286.64 \\
+	\hline
 \end{tabular}
 \label{Tab:lowertab}
 
@@ -120,403 +124,22 @@ Es ist zu sehen, dass die sequentielle Ausführung in für jede Stringlänge meh
 \newline
 \begin{tabular}{|c|r|l|r|l|}
 	\hline
-	\multicolumn{1}{|c|}{String Länge} & \multicolumn{2}{c|}{parallel} & \multicolumn{2}{c|}{sequentiell} \\
+	\multicolumn{1}{|c|}{String Länge} & \multicolumn{2}{c|}{parallel in ns} & \multicolumn{2}{c|}{sequentiell in ns} \\
 	\cline{2-5}
 	& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\
 	\hline
-	10000& 		
-	100000&		
-	1000000&	
-	100000000&	
+	%\input{tabulars/count_tab.txt} does some weird stuff and I was unable to figure out why
+	10000 & 46062.37 & 5738.73 & 53350.61 & 6362.82 \\
+	100000 & 269818.84 & 106161.31 & 322522.16 & 122342.74 \\
+	1000000 & 2617943.71 & 559510.81 & 3132603.61 & 554707.70 \\
+	100000000 & 206280004.77 & 15598865.64 & 244304383.10 & 12724125.35 \\
+	\hline
 \end{tabular}
 \label{Tab:counttab}
 
 
+
+
 \subsection{Vergleich}
-
-
-
-
-\section{Aller Anfang ist schwer}
-Gr\"o{\ss}ere Ausarbeitungen an der Professur f\"ur Rechnerarchitektur bzw. am Zentrum f\"ur Informationsdienste und Hochleistungsrechnen sollen, um ein einheitliches Layout zu erhalten, mittels {\LaTeX} und einer gemeinsamen Formatvorlage erfolgen. 
-Dieses Dokument soll den Einstieg in das Erstellen von Dokumenten mit {\LaTeX} erleichtern sowie die Verwendung dieser Formatvorlage erl\"autern.
-
-{\LaTeX} ist eine Dokumentbeschreibungssprache und in dieser Hinsicht HTML nicht un\"ahnlich. 
-Es wurde entwickelt um einfach gut aussehende (vor allem wissenschaftliche) Ver\"offentlichungen zu erm\"oglichen. 
-F\"ur Grundlagen zu Syntax und Aufbau von {\LaTeX}-Dokumenten sei an dieser Stelle auf zwei hervorragende Einf\"uhrungen, und gleichzeitig Referenzen, verwiesen: \cite{kochbuch} sowie \cite{rudl}. 
-Weiterhin ist zu {\LaTeX} auch einschl\"agige Literatur vorhanden -- genannt werden sollen an dieser Stelle exemplarisch \cite{begleiter} und \cite{kopka}. 
-Im Folgenden soll im Besonderen auf den Umgang mit der hier zur Verf\"ugung gestellten Formatvorlage eingegangen werden.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Die ZIH-Formatvorlage}
-Die Formatvorlage ist sowohl f\"ur die Erstellung wissenschaftlicher Arbeiten als auch zur Erzeugung von ZIH-Reports geeignet. 
-Sie besteht im Moment aus den Dateien \texttt{zihpub.cls}, \texttt{alphadin.bst}, \texttt{plaindin.bst}, \texttt{Makefile} und dieser Dokumentation (\texttt{doku.pdf}).
-
-
-\subsection{Einbinden der Vorlage}
-Am einfachsten nutzt sich die Vorlage, in dem alle 3 Dateien (\texttt{zihpub.cls, alphadin.bst, plaindin.bst}) im selben Verzeichnis wie die {\LaTeX}-Dokumente der Seminararbeit platziert werden. 
-{\LaTeX} pr\"uft beim Erstellen des Dokumentes zuerst das aktuelle Verzeichnis auf das Vorhandensein der ben\"otigten Vorlagen.
-
-\Paragraph{Ben\"otigte {\LaTeX}-Pakete}
-Diese Formatvorlage ben\"otigt die folgenden Pakete, die jedoch in jeder Standardinstallation enthalten sind:
-\begin{itemize}
-	\item  Koma-Script (komplett),
-	\item \texttt{inputenc} und \texttt{fontenc},
-	\item \texttt{setspace}
-	\item \texttt{times},
-	\item \texttt{graphicx},
-	\item \texttt{tabularx},
-	\item \texttt{longtable},
-	\item \texttt{url},
-	\item \texttt{color},
-	\item \texttt{enumerate},
-	\item \texttt{hyperref},
-    	\item \texttt{babel-german} und \texttt{babel-english},
-	\item \texttt{fancyvrb} und
-	\item \texttt{amsmath}, \texttt{amsfonts} und \texttt{amssymb}.
-\end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Verwenden der Vorlage}
-
-\subsubsection{Seminararbeiten und ZIH-Artikel}
-Die Vorlage f\"ur Seminararbeiten und ZIH-Artikel basiert auf dem Dokumenttyp \texttt{scrartcl} aus dem Koma-Script-Paket. 
-Die h\"ochste Gliederungsebene ist daher \verb|\section{...}| (gefolgt von \\\verb|\subsection{...}|, \verb|\subsubsection{...}|, \verb|\paragraph{...}| und \\\verb|\subparagraph{...}|). 
-Das {\LaTeX}-Ger\"ust einer Seminararbeit, die die ZIH-Vorlage benutzt, sollte ungef\"ahr wie folgt aussehen:
-\begin{Verbatim}[baselinestretch=1,fontsize=\scriptsize,numbers=left,frame=single,stepnumber=5,xleftmargin=1cm,xrightmargin=1cm]
-\documentclass[german,proseminar]{zihpub}
-
-\author{Guido Juckeland}
-\title{Die ZIH-{\LaTeX}-Formatvorlage}
-\matno{1234567}
-\betreuer{Dr. Max Mustermann}
-\bibfiles{bib-filenames}
-\copyrighterklaerung{Hier soll jeder Autor die von ihm eingeholten
-Zustimmungen der Copyright-Besitzer angeben bzw. die in Web Press
-Rooms angegebenen generellen Konditionen seiner Text- und
-Bild\"ubernahmen zitieren.}
-\acknowledgments{Die Danksagung...}
-
-\begin{document}
-
- % Hier kommt die Seminararbeit hin...
-
-\end{document}
-\end{Verbatim}
-
-Dabei sind nat\"urlich die Felder \textit{author}, \textit{title}, \textit{matno} (Matrikelnummer), \textit{betreuer}, \textit{bibfiles} und \textit{co\-py\-right\-er\-klae\-rung} entsprechend an die eigene Arbeit anzupassen. 
-Sollte keine Literatur verwendet werden, kann \textit{bibfiles} weggelassen werden (dasselbe gilt f\"ur \textit{copyrighterklaerung}). 
-Soll als Dokumentdatum (auf der Titelseite) nicht das heutige Datum gew\"ahlt werden, so kann mittels \verb|\date{neues Datum}| ein anderes Datum gesetzt werden. 
-Bei Arbeiten, die in Kooperation mit anderen Einrichtungen entstanden sind, ist es \"ublich eine Danksagung an das Dokument anzuf\"ugen. 
-Dies kann mit \textit{acknowledgments} erfolgen.
-
-Aus folgenden Dokumentoptionen ist EINE als Dokumentyp auszuw\"ahlen und in die eckigen Klammern nach \verb|\documentclass| zu setzen:
-\begin{itemize}
-	\item \texttt{proseminar}: F\"ur einen Beitrag zum Proseminar ``Rechnerarchitektur''
-	\item \texttt{hauptseminar}: F\"ur einen Beitrag zum Hauptseminar ``Rechnerarchitektur und Programmierung''
-	\item \texttt{mathseminar}: F\"ur einen Beitrag zum Seminar ``Programmier- und Compilertechniken im Wissenschaftlichen Hochleistungsrechnen''
-	\item \texttt{plainarticle}: F\"ur eine neutrale Ausarbeitung, die auf dem Grunddokumenttyp \texttt{article} aufbaut (f\"ur ZIH-Artikel). Die Felder \texttt{matno} und \texttt{betreuer} sind dann ohne Bedeutung.
-\end{itemize}
-
-Folgende weiteren Dokumentoptionen stehen zur Verf\"ugung:
-\begin{itemize}
-  \item \texttt{bibnum}: Literaturverweise nur mit einer Nummer (z.B. [1]) und nicht alphanumerisch (z.B. [GuJu04]).
-  \item \texttt{final}: \"Andert die Formatierungen im Dokument von den Vorgaben f\"ur wissenschaftliche Arbeiten zu den Vorgaben zur Ver\"offentlichung als ZIH-(Internal)-Report. Dabei ist zu beachten, dass sich der Zeilenabstand ver\"andert. Seitenumbr\"uche und Positionierung von Grafiken/Tabellen sind danach evtl. neu zu gestalten. Weiterhin ist das Dokument dann zweiseitig.
-	\item \texttt{german}: F\"ur ein deutsches Dokument. (Standard: Englisch)
-  \item \texttt{hyperref}: Aktiviert die Hyperref-Unterst\"utzung f\"ur das Dokument. Erlaubt das Navigieren durch Klicken auf Referenzen.
-  \item \texttt{lof}: Erzeugt ein Abbildungsverzeichnis.
-  \item \texttt{lot}: Erzeugt ein Tabellenverzeichnis.
-  \item \texttt{nomencl}: F\"ugt dem Dokument ein Symbolverzeichnis hinzu. Weitere Informationen dazu im Abschnitt \ref{sec:nomencl}.
-  \item \texttt{notoc}: Entfernt das Inhaltsverzeichnis aus dem Dokument.
-  \item \texttt{notitlepage}: Entfernt das Titelblatt aus dem Dokument. Zur Verwendung eigener Titelseiten, z.B. mittels \verb|\includepdf| oder\\ \verb|\AtBeginDocument{ \begin{titlepage} ... \end{titlepage} }|.
-  \item \texttt{zihtitle}: Erzeugt ein Deckblatt mit den Angaben des ZIH anstelle der Professur f\"ur Rechnerarchitektur bzw. der Professur f\"ur Angewandte Diskrete Mathematik.
-  \item \texttt{twoside}: Erzeugt ein zweiseitiges Dokument (f\"ur gro{\ss}e Arbeiten).
-  \item \texttt{utf8}: Verwendet UTF-8 Encoding (Standard: Latin-1).
-  \item \texttt{selbststaendigkeit}: F\"{u}gt einen Selbstst\"{a}ndigkeitstext hinzu.
-\end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Gro{\ss}e Belege, Beleg-Arbeiten und ZIH-Berichte}
-
-Die Vorlage f\"ur gro{\ss}e Belege und ZIH-Berichte basiert auf dem Dokumenttyp \texttt{scrreprt} aus dem Koma-Script-Paket. 
-Die h\"ochste Gliederungsebene ist daher \verb|\chapter{...}| (gefolgt von \\\verb|\section{...}|, \verb|\subsection{...}|, \verb|\subsubsection{...}|, \verb|\paragraph{...}| und \\\verb|\subparagraph{...}|). 
-Das {\LaTeX}-Ger\"ust eines gro{\ss}en Belegs, der die ZIH-Vorlage benutzt, sollte ungef\"ahr wie folgt aussehen:
-\begin{Verbatim}[baselinestretch=1,fontsize=\scriptsize,numbers=left,frame=single,stepnumber=5,xleftmargin=1cm,xrightmargin=1cm]
-\documentclass[german,beleg]{zihpub}
-
-\author{Guido Juckeland}
-\title{Die ZIH-{\LaTeX}-Formatvorlage}
-\matno{1234567}
-\betreuer{Dr. Max Mustermann}
-\bibfiles{bib-filenames}
-\copyrighterklaerung{Hier soll jeder Autor die von ihm eingeholten
-Zustimmungen der Copyright-Besitzer angeben bzw. die in Web Press
-Rooms angegebenen generellen Konditionen seiner Text- und
-Bild\"ubernahmen zitieren.}
-\acknowledgments{Die Danksagung...}
-
-\begin{document}
-
- % Hier kommt die Belegarbeit hin...
-
-\end{document}
-\end{Verbatim}
-
-Dabei sind nat\"urlich die Felder \textit{author}, \textit{title}, \textit{matno} (Matrikelnummer), \textit{betreuer}, \textit{bibfiles} und \textit{copyrighterklaerung} entsprechend an die eigene Arbeit anzupassen. 
-Sollte keine Literatur verwendet werden, kann \textit{bibfiles} weggelassen werden (dasselbe gilt f\"ur \textit{copyrighterklaerung}). 
-Soll als Dokumentdatum (auf der Titelseite) nicht das heutige Datum gew\"ahlt werden, so kann mittels \verb|\date{neues Datum}| ein anderes Datum gesetzt werden. 
-Bei Arbeiten, die in Kooperation mit anderen Einrichtungen entstanden sind, ist es \"ublich eine Danksagung an das Dokument anzuf\"ugen. 
-Dies kann mit \textit{acknowledgments} erfolgen.
-
-Aus folgenden Dokumentoptionen ist EINE als Dokumenttyp auszuw\"ahlen und in die eckigen Klammern nach \verb|\documentclass| zu setzen:
-\begin{itemize}
-	\item \texttt{beleg}: F\"ur einen gro{\ss}en Beleg
-	\item \texttt{belegsonst}: F\"ur andere Belegarbeiten
-	\item \texttt{plainreport}: F\"ur eine neutrale Ausarbeitung, die auf dem Grunddokumenttyp \texttt{report} aufbaut (f\"ur ZIH-Berichte). Die Felder \texttt{matno} und \texttt{betreuer} sind dann ohne Bedeutung.
-\end{itemize}
-
-Folgende weiteren Dokumentoptionen stehen zur Verf\"ugung:
-\begin{itemize}
-  \item \texttt{bibnum}: Literaturverweise nur mit einer Nummer (z.B. [1]) und nicht alphanumerisch (z.B. [GuJu04]).
-  \item \texttt{final}: Ändert die Formatierungen im Dokument von den Vorgaben f\"ur wissenschaftliche Arbeiten zu den Vorgaben zur Ver\"offentlichung als ZIH-(Internal)-Report. Dabei ist zu beachten, dass sich der Zeilenabstand ver\"andert. Seitenumbr\"uche und Positionierung von Grafiken/Tabellen sind danach evtl. neu zu gestalten. Weiterhin ist das Dokument dann zweiseitig.
-	\item \texttt{german}: F\"ur ein deutsches Dokument. (Standard: Englisch)
-  \item \texttt{hyperref}: Aktiviert die Hyperref-Unterst\"utzung f\"ur das Dokument. Erlaubt das Navigieren durch Klicken auf Referenzen.
-  \item \texttt{lof}: Erzeugt ein Abbildungsverzeichnis.
-  \item \texttt{lot}: Erzeugt ein Tabellenverzeichnis.
-  \item \texttt{nomencl}: F\"ugt dem Dokument ein Symbolverzeichnis hinzu. Weitere Informationen dazu im Abschnitt \ref{sec:nomencl}.
-  \item \texttt{notoc}: Entfernt das Inhaltsverzeichnis aus dem Dokument.
-  \item \texttt{zihtitle}: Erzeugt ein Deckblatt mit den Angaben des ZIH anstelle der Professur f\"ur Rechner\-architektur.
-  \item \texttt{notitlepage}: Entfernt das Titelblatt aus dem Dokument. Zur Verwendung eigener Titelseiten, z.B. mittels \verb|\includepdf| oder\\ \verb|\AtBeginDocument{ \begin{titlepage} ... \end{titlepage} }|.
-  \item \texttt{twoside}: Erzeugt ein zweiseitiges Dokument (f\"ur gro{\ss}e Arbeiten).
-  \item \texttt{utf8}: Verwendet UTF-8 Encoding (Standard: Latin-1).
-  \item \texttt{selbststaendigkeit}: F\"{u}gt einen Selbstst\"{a}ndigkeitstext hinzu.
-\end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Diplomarbeiten, Bachelor-, Master-Arbeiten}
-
-Die Vorlage f\"ur Diplomarbeiten, Bachelor-, Master-Arbeiten basiert auf dem Dokumenttyp \texttt{scrreprt} aus dem Koma-Script-Paket. 
-Die h\"ochste Gliederungsebene ist daher \verb|\chapter{...}| (gefolgt von \verb|\section{...}|, \\\verb|\subsection{...}|, \verb|\subsubsection{...}|, \verb|\paragraph{...}| und \\\verb|\subparagraph{...}|). 
-Das {\LaTeX}-Ger\"ust einer Diplom-, Bachelor-, Master-Arbeit, das die ZIH-Vorlage benutzt, sollte ungef\"ahr wie folgt aussehen:
-\begin{Verbatim}[baselinestretch=1,fontsize=\scriptsize,numbers=left,frame=single,stepnumber=5,xleftmargin=1cm,xrightmargin=1cm]
-\documentclass[diplomist,german]{zihpub}
-
-\author{Guido Juckeland}
-\title{Die ZIH-{\LaTeX}-Formatvorlage}
-\birthday{1. Januar 1970}
-\placeofbirth{Musterstadt}
-\betreuer{Dr. Max Mustermann}
-\bibfiles{bib-filenames}
-\copyrighterklaerung{Hier soll jeder Autor die von ihm eingeholten
-Zustimmungen der Copyright-Besitzer angeben bzw. die in Web Press
-Rooms angegebenen generellen Konditionen seiner Text- und
-Bild\"ubernahmen zitieren.}
-\acknowledgments{Die Danksagung...}
-\abstractde{Abstract in Deutsch}
-\abstracten{Abstract in Englisch}
-
-\begin{document}
-
- % Hier kommt die Diplomarbeit hin...
-
-\end{document}
-\end{Verbatim}
-
-Dabei sind nat\"urlich die Felder \textit{author}, \textit{title}, \textit{birthday}, \textit{placeofbirth}, \textit{betreuer}, \textit{bibfiles}, \textit{copyrighterklaerung}, \textit{abstractde} und \textit{abstracten} entsprechend an die eigene Arbeit anzupassen. 
-Das Geburtsdatum ist dabei in der Form \textit{01. Januar 1970} anzugeben. 
-Sollte keine Literatur verwendet werden, kann \textit{bibfiles} weggelassen werden (dasselbe gilt f\"ur \textit{copyrighterklaerung}). 
-Soll als Dokumentdatum (auf der Titelseite) nicht das heutige Datum gew\"ahlt werden, so kann mittels \verb|\date{neues Datum}| ein anderes Datum gesetzt werden. 
-Bei Diplomarbeiten oder Arbeiten, die in Kooperation mit anderen Einrichtungen entstanden sind, ist es \"ublich eine Danksagung an das Dokument anzuf\"ugen. 
-Dies kann mit \textit{acknowledgments} erfolgen. 
-Diplomandinnen verwenden bitte zus\"atzlich die Dokumentoption \textit{female}.
-Wird die Arbeit von einem anderen Hochschullehrer betreut, so kann er mit dem Befehl \textit{hsl} angegeben werden.
-
-Aus folgenden Dokumentoptionen ist EINE als Dokumentyp auszuw\"ahlen und in die eckigen Klammern nach \verb|\documentclass| zu setzen:
-\begin{itemize}
-	\item \texttt{diplominf}: F\"ur eine Diplomarbeit zur Erlangung des akademischen Grades Diplom-Infor\-ma\-ti\-ker(in)
-	\item \texttt{bachinf}: F\"ur eine Bachelor-Arbeit zur Erlangung des akademischen Grades Bachelor of Science
-	\item \texttt{mastinf}: F\"ur eine Master-Arbeit zur Erlangung des akademischen Grades Master of Science
-	\item \texttt{diplomist}: F\"ur eine Diplomarbeit zur Erlangung des akademischen Grades Diplom-In\-ge\-nieur (-in) f\"ur Infor\-ma\-tions\-sys\-tem\-tech\-nik
-	\item \texttt{diplomtmath}: F\"ur eine Diplomarbeit zur Erlangung des akademischen Grades Diplom-Ma\-the\-ma\-ti\-ker(in) (Technomathematik)
-\end{itemize}
-
-Folgende weiteren Dokumentoptionen stehen zur Verf\"ugung:
-\begin{itemize}
-  \item \texttt{bibnum}: Literaturverweise nur mit einer Nummer (z.B. [1]) und nicht alphanumerisch (z.B. [GuJu04])
-  \item \texttt{female}: F\"ugt bei Diplomarbeiten das ``in'' an den Titel an.
-  \item \texttt{final}: \"Andert die Formatierungen im Dokument von den Vorgaben f\"ur wissenschaftliche Arbeiten zu den Vorgaben zur Ver\"offentlichung als ZIH-(Internal)-Report. Dabei ist zu beachten, dass sich der Zeilenabstand ver\"andert. Seitenumbr\"uche und Positionierung von Grafiken/Tabellen sind danach evtl. neu zu gestalten. Weiterhin ist das Dokument dann zweiseitig.
-  \item \texttt{german}: F\"ur ein deutsches Dokument. (Standard: Englisch)
-  \item \texttt{hyperref}: Aktiviert die Hyperref-Unterst\"utzung f\"ur das Dokument. Erlaubt das Navigieren durch klicken auf Referenzen.
-  \item \texttt{lof}: Erzeugt ein Abbildungsverzeichnis.
-  \item \texttt{lot}: Erzeugt ein Tabellenverzeichnis.
-  \item \texttt{nomencl}: F\"ugt dem Dokument ein Symbolverzeichnis hinzu. Weitere Informationen dazu im Abschnitt \ref{sec:nomencl}.
-  \item \texttt{noproblem}: Entfernt den Platzhalter f\"ur die Aufgabenstellung.
-  \item \texttt{notoc}: Entfernt das Inhaltsverzeichnis aus dem Dokument.
-   \item \texttt{notitlepage}: Entfernt das Titelblatt aus dem Dokument. Zur Verwendung eigener Titelseiten, z.B. mittels \verb|\includepdf| oder\\ \verb|\AtBeginDocument{ \begin{titlepage} ... \end{titlepage} }|.
-  \item \texttt{zihtitle}: Erzeugt ein Deckblatt mit den Angaben des ZIH anstelle der Professur f\"ur Rechnerarchitektur.
-  \item \texttt{twoside}: Erzeugt ein zweiseitiges Dokument (f\"ur gro{\ss}e Arbeiten).
-  \item \texttt{utf8}: Verwendet UTF-8 Encoding (Standard: Latin-1).
-\end{itemize}
-
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Dissertationen}
-
-Die Vorlage f\"ur Dissertationen basiert auf dem Dokumenttyp \texttt{scrreprt} aus dem Koma-Script-Paket. 
-Die h\"ochste Gliederungsebene ist daher \verb|\chapter{...}| (gefolgt von \verb|\section{...}|, \\\verb|\subsection{...}|, \verb|\subsubsection{...}|, \verb|\paragraph{...}| und \\\verb|\subparagraph{...}|). 
-Das {\LaTeX}-Ger\"ust einer Disseration, das die ZIH-Vorlage benutzt, sollte ungef\"ahr wie folgt aussehen:
-\begin{Verbatim}[baselinestretch=1,fontsize=\scriptsize,numbers=left,frame=single,stepnumber=5,xleftmargin=1cm,xrightmargin=1cm]
-\documentclass[dissrernat,utf8,f,twoside]{zihpub}
-
-\author{Guido Juckeland}
-\title{Die ZIH-{\LaTeX}-Formatvorlage}
-\birthday{1. Januar 1970}
-\placeofbirth{Musterstadt}
-\gutachter{Prof. Dr. rer. nat. Wolgang E. Nagel}
-\bibfiles{bib-filenames}
-
-\begin{document}
-
- % Hier kommt die Dissertation hin...
-
-\end{document}
-\end{Verbatim}
-
-Dabei sind nat\"urlich die Felder \textit{author}, \textit{title}, \textit{birthday}, \textit{placeofbirth}, \textit{gutachter}, \textit{bibfiles} entsprechend an die eigene Arbeit anzupassen. 
-Das Geburtsdatum ist dabei in der Form \textit{01. Januar 1970} anzugeben. 
-Sollte keine Literatur verwendet werden, kann \textit{bibfiles} weggelassen werden (dasselbe gilt f\"ur \textit{copyrighterklaerung}). 
-Soll als Dokumentdatum (auf der Titelseite) nicht das heutige Datum gew\"ahlt werden, so kann mittels \verb|\date{neues Datum}| ein anderes Datum gesetzt werden. 
-Bei Dissertationen oder Arbeiten, die in Kooperation mit anderen Einrichtungen entstanden sind, ist es \"ublich eine Danksagung an das Dokument anzuf\"ugen. 
-Dies kann mit \textit{acknowledgments} erfolgen. Eine Widmung kann mit \textit{dedication} hinzugef\"ugt werden. 
-Ebenso k\"onnen die Abstracts genau wie bei Diplomarbeiten eingef\"ugt werden.
-
-Aus folgenden Dokumentoptionen ist EINE als Dokumentyp auszuw\"ahlen und in die eckigen Klammern nach \verb|\documentclass| zu setzen:
-\begin{itemize}
-	\item \texttt{dissrernat}: F\"ur eine Dissertation zur Erlangung des akademischen Grades Doktor rerum naturalium (Dr. rer. nat.)
-        \item \texttt{dissing}: F\"ur eine Dissertation zur Erlangung des akademischen Grades Doktoringenieur (Dr.-Ing.)
-\end{itemize}
-
-Folgende weiteren Dokumentoptionen stehen zur Verf\"ugung:
-\begin{itemize}
-  \item \texttt{bibnum}: Literaturverweise nur mit einer Nummer (z.B. [1]) und nicht alphanumerisch (z.B. [GuJu04])
-  \item \texttt{final}: \"andert die Formatierungen im Dokument von den Vorgaben f\"ur wissenschaftliche Arbeiten zu den Vorgaben zur Ver\"offentlichung als ZIH-(Internal)-Report. Dabei ist zu beachten, dass sich der Zeilenabstand ver\"andert. Seitenumbr\"uche und Positionierung von Grafiken/Tabellen sind danach evtl. neu zu gestalten. Weiterhin ist das Dokument dann zweiseitig.
-  \item \texttt{kurz}: Erzeugt die Kurzfassung
-  \item \texttt{german}: F\"ur ein deutsches Dokument. (Standard: Englisch)
-  \item \texttt{hyperref}: Aktiviert die Hyperref-Unterst\"utzung f\"ur das Dokument. Erlaubt das Navigieren durch klicken auf Referenzen.
-  \item \texttt{lof}: Erzeugt ein Abbildungsverzeichnis.
-  \item \texttt{lot}: Erzeugt ein Tabellenverzeichnis.
-  \item \texttt{nomencl}: F\"ugt dem Dokument ein Symbolverzeichnis hinzu. Weitere Informationen dazu im Abschnitt \ref{sec:nomencl}.
-  \item \texttt{notoc}: Entfernt das Inhaltsverzeichnis aus dem Dokument.
-   \item \texttt{notitlepage}: Entfernt das Titelblatt aus dem Dokument. Zur Verwendung eigener Titelseiten, z.B. mittels \verb|\includepdf| oder\\ \verb|\AtBeginDocument{ \begin{titlepage} ... \end{titlepage} }|.
-  \item \texttt{twoside}: Erzeugt ein zweiseitiges Dokument (f\"ur gro{\ss}e Arbeiten).
-  \item \texttt{utf8}: Verwendet UTF-8 Encoding (Standard: Latin-1).
-  \item \texttt{selbststaendigkeit}: F\"{u}gt einen Selbstst\"{a}ndigkeitstext hinzu.
-\end{itemize}
-
-\subsection{Zur Verf\"ugung gestellte Befehle}
-Innerhalb der Formatvorlage werden h\"aufig ben\"otigten Pakete eingebunden. 
-Zur Verwendung der von den Paketen zur Verf\"ugung gestellten Befehle sei auf deren Dokumentation verwiesen (meist in <TeX-root>/doc/latex zu finden). Dies sind:
-
-\begin{itemize}
-	\item \texttt{inputenc}: Erlaubt die direkte Verwendung von Umlauten und deutschen Sonderzeichen innerhalb des Quellcodes. Siehe dazu auch Abschnitt \ref{sec:umlaute}.
-	\item \texttt{fontenc}: Erm\"oglicht die automatische Silbentrennung von Worten mit Umlauten.
-	\item \texttt{times}: Setzt die Dokumentschriftart auf Adobe Times.
-	\item \texttt{graphicx}: Erm\"oglicht die Einbindung von Grafiken. Siehe dazu auch Abschnitt \ref{sec:grafiken}.
-	\item \texttt{tabularx}: Erm\"oglicht die Erstellung von Tabellen mit Spalten gleicher Breite. Zur Verwendung sei auf die zum Paket geh\"orige Dokumentation verwiesen.
-	\item \texttt{longtable}: Erm\"oglicht die Erstellung von Tabellen mit einem Seitenumbruch innerhalb der Tabelle. Zur Verwendung sei auf die zum Paket geh\"orige Dokumentation verwiesen.
-	\item \texttt{url}: Erm\"oglicht das Verwenden von URL's mittels \verb|\url\{URL\}|.
-	\item \texttt{color}: Erm\"oglicht farbigen Text/Texthintergr\"unde.
-    \item \texttt{babel}: Sprachdefinitionen f\"ur Deutsch und Englisch.
-	\item \texttt{fancyvrb}: Erm\"oglicht schicke Listings (wie in diesem Dokument verwendet). Zur Verwendung sei auf die Dokumentation zum Paket unter \texttt{.../textmf/doc/latex/fancyvrb} verwiesen.
-	\item \texttt{amsmath}, \texttt{amsfonts} und \texttt{amssymb}: Stellen die {\LaTeX}-Mathematik-Formatierungen und -Sym\-bo\-le zur Verf\"ugung.
-	\item \texttt{enumerate}: Erlaubt nummerierte Aufz\"ahlungen mit benutzerdefinierten Aufz\"ahlungszeichen.
-	\item \texttt{nomencl}: Erzeugt \"uber die makeindex-Umgebung ein Symbolverzeichnis.
-\end{itemize}
-
-\noindent Folgende benutzerdefinierten Befehle stehen zur Verwendung bereit:
-\begin{itemize}
-	\item \verb|\longcite{Zitierschl\"ussel}{Seitenzahl}| erzeugt einen Eintrag f\"ur das Verweisen auf ein Dokument, aus dem die dargestellten Fakten \"ubernommen wurden in folgender Form: \longcite{rudl}{123}.
-	\item \verb|\shortcite{Zitierschl\"ussel}{Seitenzahl}| erzeugt einen Eintrag, f\"ur das direkte Zitieren einer Quelle in folgender Form: \shortcite{rudl}{123}.
-	\item \verb|\Paragraph{Überschrift}|: Erzeugt eine Absatz\"uberschrift mit darauffolgendem Zeilen\-umbruch.
-	\item \verb|\correctme{Text}|: F\"arbt \texttt{Text} rot ein, um ihn als ``Noch zu bearbeiten'' zu kennzeichnen. Dies funktioniert jedoch nur f\"ur maximal einen Absatz.
-	\item \verb|\begin{correctmore} Text \end{correctmore}|: F\"arbt \texttt{Text} rot ein, um ihn als ``Noch zu bearbeiten'' zu kennzeichnen. Dies funktioniert auch \"uber Absatzgrenzen hinweg.
-\end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Besonderheiten und Hinweise}
-
-\subsection{Grafiken und Tabellen}
-\label{sec:grafiken}
-
-Grafiken platziert man am besten wie folgt (was zu dem in Abbildung \ref{fig:zhr_logo} dargestellten Ergebnis f\"uhrt):
-\begin{Verbatim}[baselinestretch=1,fontsize=\scriptsize,numbers=left,frame=single,stepnumber=5,xleftmargin=1cm,xrightmargin=1cm]
-\begin{figure}[htbp]
-  \begin{center}
-    \includegraphics[width=0.5\textwidth]{Logo_20mm_sw.pdf}
-    \caption{Das ZIH-Logo}
-    \label{fig:bild1}
-  \end{center}
-\end{figure}
-\end{Verbatim}
-Dabei kann die Bildbreite relativ zur Textbreite auch variiert werden und zwar mittels der Option\\ \verb|width=0.75\textwidth|.\\
-Die Bildunterschrift ist unter der Grafik zu platzieren (wie in obigen Beispiel). Auf die Grafik ist mittels \verb|\label| und \verb|\ref| im Text Bezug zu nehmen!
-
-\begin{figure}[htbp]
-  \begin{center}
-    \includegraphics[width=.45\textwidth]{zih_logo_de_sw}
-    \caption{Das ZIH-Logo}
-    \label{fig:zhr_logo}
-  \end{center}
-\end{figure}
-
-
-F\"ur die Tabellenumgebung (\verb|\begin{table} ... \end{table}|) gilt selbiges wie f\"ur die Grafiken, jedoch ist hier die Beschriftung oberhalb der Tabelle zu positionieren.
-
-\subsection{Literaturverweise}
-Literaturverweise innerhalb des Dokuments sollen ordentlich mit \verb|\cite| oder auch den extra zur Verf\"ugung gestellten Erweiterungen erfolgen. 
-Die Literatur ist dabei in einer externen Bib-Datei zu halten. 
-Dieses Dokument und die zugeh\"origen Quelldateien (\texttt{doku.tex} und \texttt{doku.bib}) k\"onnen dabei als Vorlage dienen.
-
-\subsection{Dokumentaufteilung}
-Es empfiehlt sich, das Dokument in kleinere Teile (vielleicht f\"ur jede Section) zu zerlegen und diese per \verb|\input| in ein Hauptdokument einzubinden. 
-Dies vermeidet ein ellenlanges Hauptdokument und erleichtert auch die Fehlersuche.
-
-\subsection{Symbol- / Abk\"urzungsverzeichnisse}
-\label{sec:nomencl}
-Mit dem Paket \texttt{nomencl} k\"onnen Symbolverzeichnisse erzeugt werden. 
-Dies ist bereits in diese Vorlage mit integriert und direkt verwendbar. 
-Dazu muss nur die Dokumentoption \texttt{nomencl} hinzugef\"ugt werden. 
-Dies erzeugt das Symbolverzeichnis automatisch nach dem Inhaltsverzeichnis.
-Mit dem Befehl \verb|\setnomenclmargin{<length>}| l\"asst sich die Breite der Spalte f\"ur die Abk\"urzungen anpassen. 
-Mit \verb|\nomenclature{<Symbol>}{<Erkl\"arung>}| lassen sich Eintr\"age in das Verzeichnis aufnehmen. 
-Das Verzeichnis muss manuell mit der makeindex-Umgebebung erstellt werden. 
-Folgender Aufruf auf der Kommandozeile (im Verzeichnis mit der Hauptdatei erledigt dies:\\
-\verb|makeindex <Hauptdatei>.nlo -s nomencl.ist -o <Hauptdatei>.nls|
-
-\subsection{Umlaute}
-\label{sec:umlaute}
-Umlaute innerhalb von Textdokumenten stellen immer ein kleines Problem bei der Kompatibilit\"at dar. 
-Dadurch, dass diese Vorlage \"uber \texttt{inputenc} die Eingabe von Umlauten direkt erm\"oglicht, l\"asst sich die Handhabung von Umlauten innerhalb der Dokumente vereinfachen.
-\textbf{Folgendes ist aber zu beachten:} Abh\"angig vom Betriebssystem werden Umlaute unterschiedlich kodiert: Windows ISO-8559-1, Mac OS und Linux UTF-8.
-Die Windows {\LaTeX}-Umgebungen k\"onnen aber heutzutage auch mit UTF-8 umgehen. 
-Auf die richtige Dokumentoption ist zu achten!
-
-\subsection{Kleinigkeiten}
-Ein letztes Anliegen ist die bessere Verwendung von speziellen Leer- und Trennzeichen. 
-Es sei an dieser Stelle auf folgenden Sonderzeichen in {\LaTeX} hingewiesen:
-\begin{itemize}
-	\item \verb|~| : Ein gesch\"utztes Leerzeichen. {\LaTeX} wird hier nicht zu einer neuen Zeile umbrechen.
-	\item \verb|\-| : Ein Trennvorschlag. Zu verwenden bei falsch getrennten Worten. Einfach an den ``richtigen'' Stellen einf\"ugen.
-	\item \verb|\,| : Trennzeichen zwischen Abk\"urzungen. Ist zum Beispiel zwischen z.\,B., u.\,\"a. oder O.\,B.\,d.\,A. einzuf\"ugen.
-\end{itemize}
-
-\section{Anregungen, Fehler und Verbesserungsvorschl\"age}
-... werden nat\"urlich gern entgegengenommen, als Issue auf gitlab:\\
-\small{
-\url{https://gitlab.hrz.tu-chemnitz.de/tud-zih-lehre/zih-latex-template/-/issues}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}
