@@ -167,6 +167,19 @@ def complex_plots(df_10k: pd.DataFrame,
     complex_plot(strings, means_par, means_seq, iter_list)
 
 
+def create_tabulars(df_10k, df_100k, df_1M, df_100M):
+    if not os.path.isdir("../report/tabulars"):
+        os.mkdir("../report/tabulars")
+    
+    # count
+    with open("../report/tabulars/count_tab.txt","w") as f:
+        mean_par = np.mean(df_10k["count_par"])
+        mean_seq = np.mean(df_10k["count_seq"])
+        std_par = np.std(df_10k["count_par"])
+        std_seq = np.std(df_10k["count_seq"])
+        f.write(f"10000 & {mean_par:.2f} & {std_par:.2f} & {mean_seq:.2f} & {std_seq:.2f} \\\\")
+
+
 
 def main():
     df_10k = pd.read_csv("./data/string_times_10000.csv")
@@ -183,6 +196,8 @@ def main():
     comparison_plots(df_100k, 100000)
     comparison_plots(df_1M, 1000000)
     comparison_plots(df_100M, 100000000)
+
+    create_tabulars(df_10k, df_100k, df_1M, df_100M)
 
 
 
