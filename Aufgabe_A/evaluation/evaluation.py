@@ -74,7 +74,6 @@ def comparison_plot(strings: dict,
                     series_seq: pd.Series) -> None:
     mean_par = np.mean(series_par)
     mean_seq = np.mean(series_seq)
-    print(mean_par, mean_seq)
 
     fig, ax = plt.subplots()
     plt.title(strings["title"]+f"{iterations} chars.", pad=20)
