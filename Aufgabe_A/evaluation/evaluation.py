@@ -36,7 +36,7 @@ def get_strings(key: str) -> dict:
                 "marker_par":"^",
                 "color_seq":"orange",
                 "marker_seq":"s",
-                "filename":"../report/images/comp_upper_"
+                "filename":"../report/images/comp_lower_"
                 },
             "complex_count": {"title": f"Mean processing time to count chars in strings of different length.",
                 "ylabel":"time in ns",

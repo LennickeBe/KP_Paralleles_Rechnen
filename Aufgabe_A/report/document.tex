@@ -3,7 +3,7 @@
 \author{Bengt Lennicke}
 \title{Komplexpraktikum "Paralleles Rechnen" \newline A - Stringmanipulationen mit Intrinsics}
 
-\bibfiles{doku}
+
 
 
 \begin{document}
@@ -120,7 +120,7 @@ Es ist deutlich zu sehen, dass die sequentielle Ausführung in für jede Stringl
 
 \subsubsection{countChar}
 In der Tabelle \ref{Tab:counttab} sind die Zeitmessungen für die countChar() Funktionen zusammengefasst.
-Es ist zu sehen, dass die sequentielle Ausführung in für jede Stringlänge mehr Zeit benötigt als die Umsetzung mit SIMD. Hier ist der Unterschied allerdings nicht so deutlich wie bei den vorherigen Funktionen. Hier würde es sich lohnen nach einer effizienteren Lösung zu suchen, mit der der SIMD Ansatz verwirklicht wurde.
+Es ist zu sehen, dass die sequentielle Ausführung in für jede Stringlänge mehr Zeit benötigt als die Umsetzung mit SIMD. Hier ist der Unterschied allerdings nicht so deutlich wie bei den vorherigen Funktionen. Hier würde es sich lohnen nach einer effizienteren Lösung zu suchen als dem aktuellen Ansatz.
 \newline
 \begin{tabular}{|c|r|l|r|l|}
 	\hline
@@ -138,8 +138,9 @@ Es ist zu sehen, dass die sequentielle Ausführung in für jede Stringlänge meh
 \label{Tab:counttab}
 
 
-
-
 \subsection{Vergleich}
+\subsubsection{toUppercase}
+\subsubsection{toLowercase}
+\subsubsection{countChar}
 
 \end{document}
