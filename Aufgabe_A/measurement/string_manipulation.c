@@ -6,7 +6,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-
+/*
+ * returns the difference between two timespec objects in ns
+ */
 int time_diff_in_ns(struct timespec start, struct timespec end)
 {
 	return (1000000000 * (end.tv_sec - start.tv_sec) +
@@ -23,6 +25,13 @@ int random_int(int min, int max){
 }
 
 
+/*
+ * fill a given string with random characters between 32 and 126
+ * (in ascii)
+ * the memory the pointer is pointing at must be allocated
+ * and the size must match that space
+ * returns 0 on success and -1 if the size is 0
+ */
 int generateString(char *str, size_t size)
 {
     if (size) 
@@ -54,22 +63,15 @@ char* rand_string_alloc(size_t size)
      return s;
 }
 
-void printBits(size_t const size, void const * const ptr)
-{
-    unsigned char *b = (unsigned char*) ptr;
-    unsigned char byte;
-    int i, j;
-
-    for (i = size-1; i >= 0; i--) {
-        for (j = 7; j >= 0; j--) {
-            byte = (b[i] >> j) & 1;
-            printf("%u", byte);
-        }
-	printf("\n");
-    }
-    puts("");
-}
-
+/*
+ * this function takes a string (with length len_string)
+ * and measures how long it takes to run the functions
+ *  toUpperPar, toUpperSeq, toLowerPar, toLowerSeq
+ *  countCharPar, countCharSeq
+ * and writes the times in ns in the given file in csv format
+ * returns 0 on success and 1 if a parallel and sequential
+ * result does not add up
+ */
 int measure(FILE *file, char *string, int len_string)
 {
 	int par_count, seq_count;
@@ -139,6 +141,13 @@ int measure(FILE *file, char *string, int len_string)
 	return 0;
 }
 	
+
+/*
+ * this functions calls the measure function "iterations" times
+ * with a newly generated string of the lengt
+ * it also writes the header for the csv file
+ * returns 0 on success and 1 if measure returns 1
+ */
 int measurement(FILE *file, int iterations, int len_string)
 {
 	char *string;
