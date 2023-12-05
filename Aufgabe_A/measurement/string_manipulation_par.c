@@ -12,17 +12,25 @@ __m256i upper_up_limit;
 __m256i lower_up_limit;
 __m256i register_of_32;
 
+
 /*
  * Turn string in register "string" to uppercase
  * returns 1 if there has been an error, 0 if there has been no error
  */
 int regToUppercase(__m256i *string)
 {
-
+	// lower_low_limit is filled with 96 in 8-Bits
+	// upper_low_limit is filled with 123 in 8-Bits
+	// each 8-bit in string register is compared to both and
+	// results in a register with ones where the 8bit number
+	// is corresponds to a lowercase ascii char
 	__m256i is_lower_char = _mm256_and_si256(
 			_mm256_cmpgt_epi8(*string, lower_low_limit),
 			_mm256_cmpgt_epi8(upper_low_limit, *string));
 
+	// where ones are in the register we got from the comparison
+	// we subtract 32 from the original number to transform into
+	// uppercase
 	*string = _mm256_sub_epi8(*string,
 			_mm256_and_si256(register_of_32, is_lower_char));
 	return 0;
@@ -39,6 +47,8 @@ int toUppercasePar(char *string, int len_string)
 	char *filler_string;
 	__m256i xmm;
 
+	// a register can hold 32 chars (8bit ints)
+	// so we work on 32 chars of the string at a time
 	for ( i=0; i<=len_string-32; i+=32)
 	{
 		xmm = _mm256_loadu_si256((__m256i*) string);
@@ -71,10 +81,18 @@ int toUppercasePar(char *string, int len_string)
  */
 int regToLowercase(__m256i *string)
 {
+	// lower_up_limit is filled with 64 in 8-Bits
+	// upper_up_limit is filled with 91 in 8-Bits
+	// each 8-bit in string register is compared to both and
+	// results in a register with ones where the 8bit number
+	// is corresponds to a uppercase ascii char
 	__m256i is_lower_char = _mm256_and_si256(
 			_mm256_cmpgt_epi8(*string, lower_up_limit),
 			_mm256_cmpgt_epi8(upper_up_limit, *string));
 
+	// where ones are in the register we got from the comparison
+	// we add 32 from the original number to transform into
+	// lowercase
 	*string = _mm256_add_epi8(*string,
 			_mm256_and_si256(register_of_32, is_lower_char));
 	return 0;
@@ -91,6 +109,8 @@ int toLowercasePar(char *string, int len_string)
 	char *filler_string;
 	__m256i xmm;
 
+	// a register can hold 32 chars (8bit ints)
+	// so we work on 32 chars of the string at a time
 	for ( i=0; i<=len_string-32; i+=32)
 	{
 		xmm = _mm256_loadu_si256((__m256i*) string);
@@ -126,9 +146,7 @@ int bitCount(unsigned int u)
  {
          unsigned int uCount;
          uCount = u - ((u >> 1) & 033333333333) - ((u >> 2) & 011111111111);
-	 
 	 return ((uCount + (uCount >> 3)) & 030707070707) % 63;
-
  }
 
 
@@ -157,6 +175,8 @@ int countCharPar(char *string, int len_string,  char c)
 	char *filler_string;
 	__m256i xmm;
 
+	// a register can hold 32 chars (8bit ints)
+	// so we work on 32 chars of the string at a time
 	for ( i=0; i<=len_string-32; i+=32)
 	{
 		xmm = _mm256_loadu_si256((__m256i*) string);
@@ -180,6 +200,13 @@ int countCharPar(char *string, int len_string,  char c)
 }
 
 
+/*
+ * the register are used with the same content
+ * so they are declared globaly and initialized here
+ * the values are the limits for the lowercase
+ * and uppercase ascii chars
+ * as well as a register with 32 in each 8-bit
+ */
 void init_register() {
 	// register with chars '<' than a
 	lower_low_limit = _mm256_set1_epi8('`');
