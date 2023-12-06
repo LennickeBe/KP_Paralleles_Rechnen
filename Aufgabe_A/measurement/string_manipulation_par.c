@@ -1,6 +1,5 @@
 #include <immintrin.h>  // intel intrinsics 
-#include <stdio.h>	// io functions TODO maybe remove after testing
-#include <string.h>	// TODO check if necessary before turn in
+#include <string.h>	// string functions
 #include <stdlib.h>	// string generation (rand_r)
 #include <math.h>	// for "to the power of"
 
