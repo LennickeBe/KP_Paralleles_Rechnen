@@ -10,6 +10,14 @@ import matplotlib.pyplot as plt
 
 
 def get_strings(key: str) -> dict:
+    """ Returns a dict for plot related strings.
+
+    Args:
+        key (str): which set of strings for the plots are desired
+
+    Returns:
+        (dict): dictionary with strings for plots (e.g. "title",...)
+    """
     return {
             "count": {"title": f"Processing time to count chars in a string with ",
                 "ylabel":"time in ns",
@@ -69,9 +77,23 @@ def get_strings(key: str) -> dict:
 
 
 def comparison_plot(strings: dict,
-                    iterations: int,
+                    str_length: int,
                     series_par: pd.Series,
                     series_seq: pd.Series) -> None:
+    """ Creates a scatter plot with the given data and strings.
+
+    The given strings dict is from the 'get_strings' function contains
+    the information about the title (together with 'iterations',
+    labels for the axes, etc.
+    The 'series_par' and 'series_seq' are scatter-plotted.
+
+    Args:
+        strings (dict): dict with strings for the plot
+        str_length (int): length of the string the data corresponds to
+        series_par (pd.Series): Data for the parallel function
+        series_seq (pd.Series): Data for the sequential function
+    Returns:
+    """
     mean_par = np.mean(series_par)
     mean_seq = np.mean(series_seq)
 
@@ -91,24 +113,37 @@ def comparison_plot(strings: dict,
     plt.close()
 
 
-def comparison_plots(df: pd.DataFrame, iterations: int):
+def comparison_plots(df: pd.DataFrame, str_length: int) -> None:
+    """ Creates comparison plots for the string manipulation functions.
+
+    In the dataframe are column pairs (parallel, sequential) for
+    the countChar, toUppercase, toLowercase.
+    This functions calls 'comparion_plot' for each pair with the
+    matching plot-strings-dict.
+
+    Args:
+        df (pd.DataFrame): time measurement data
+        str_length (int): length of the string the measurment used
+
+    Returns:
+    """
     # count
     strings = get_strings("count")
     series_par = df["count_par"]
     series_seq = df["count_seq"]
-    comparison_plot(strings, iterations, series_par, series_seq)
+    comparison_plot(strings, str_length, series_par, series_seq)
 
         # uppercase
     strings = get_strings("up")
     series_par = df["upper_par"]
     series_seq = df["upper_seq"]
-    comparison_plot(strings, iterations, series_par, series_seq)
+    comparison_plot(strings, str_length, series_par, series_seq)
 
     # lower
     strings = get_strings("low")
     series_par = df["lower_par"]
     series_seq = df["lower_seq"]
-    comparison_plot(strings, iterations, series_par, series_seq)
+    comparison_plot(strings, str_length, series_par, series_seq)
 
 
 def complex_plot(strings: dict,
@@ -179,16 +214,10 @@ def write_tab_line(f,
 def write_tab_lines(f,
                     df_10k, df_100k, df_1M, df_100M,
                     string_par: str, string_seq: str) -> None:
-    # header
-    #f.write("\\begin{tabular}{|c|r|l|r|l|}\n\hline\n\multicolumn{1}{|c|}{String Länge}& \multicolumn{2}{c|}{parallel in ns} & \multicolumn{2}{c|}{sequentiell in ns} \\\\\n\cline{2-5}\n& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\\n\hline\n")
-
     write_tab_line(f, 10000, df_10k[string_par], df_10k[string_seq])
     write_tab_line(f, 100000, df_100k[string_par], df_100k[string_seq])
     write_tab_line(f, 1000000, df_1M[string_par], df_1M[string_seq])
     write_tab_line(f, 100000000, df_100M[string_par], df_100M[string_seq])
-
-    # footer
-    #f.write("\end{tabular}\n\label{Tab:counttab}\n")
 
 
 def create_tabulars(df_10k, df_100k, df_1M, df_100M):
@@ -213,8 +242,8 @@ def main():
     df_100k = pd.read_csv("./data/string_times_100000.csv")
     df_1M = pd.read_csv("./data/string_times_1000000.csv")
     df_100M = pd.read_csv("./data/string_times_100000000.csv")
+    
     create_tabulars(df_10k, df_100k, df_1M, df_100M)
-
 
     if not os.path.isdir("../report/images"):
         os.mkdir("../report/images")
