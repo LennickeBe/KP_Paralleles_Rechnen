@@ -22,4 +22,5 @@ typedef struct
 } board;
 
 board * init_board(int rows, int cols);
+void update_board(board *b);
 #endif

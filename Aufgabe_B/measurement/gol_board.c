@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "gol_board.h"
 
@@ -37,6 +38,41 @@ int get_num_neighbours(board *b , int x, int y)
     check_state(b, x-1, y-1) + check_state(b, x, y-1) + check_state(b, x+1, y-1) +
     check_state(b, x-1, y)   +                          check_state(b, x+1, y) +
     check_state(b, x-1, y+1) + check_state(b, x, y+1) + check_state(b, x+1, y+1);
+}
+
+
+bool get_new_state(board *b, int x, int y)
+{
+    int neighbours = get_num_neighbours(b, x, y);
+    if (check_state(b, x, y))
+    {
+        if (neighbours < 2) return 0;
+        if (neighbours > 3) return 0;
+    }
+    else
+    {
+        if ( neighbours == 3 ) return 1; 
+    }
+}
+
+void update_board(board *b)
+{
+    int i, j;
+    board *buf;
+    size_t size = 2*sizeof(int) + (b->rows * b->cols) * sizeof(bool);
+    buf = malloc(size);
+    memcpy(buf, b, size);
+ 
+
+    for ( i = 0; i < b->rows; i++)
+    {
+        for ( j = 0; j < b->cols; j++)
+        {
+            set_state(b, j, i, get_new_state(buf, j, i));
+        }
+        
+    }
+   free(buf);
 }
 
 
