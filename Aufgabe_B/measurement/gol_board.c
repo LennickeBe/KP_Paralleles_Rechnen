@@ -33,7 +33,10 @@ void set_state (board *b, int x, int y, bool state)
 
 int get_num_neighbours(board *b , int x, int y)
 {
-
+    return
+    check_state(b, x-1, y-1) + check_state(b, x, y-1) + check_state(b, x+1, y-1) +
+    check_state(b, x-1, y)   +                          check_state(b, x+1, y) +
+    check_state(b, x-1, y+1) + check_state(b, x, y+1) + check_state(b, x+1, y+1);
 }
 
 
@@ -52,6 +55,5 @@ board* init_board(int rows, int cols) {
     set_state(b, 2, 1, 1);
     set_state(b, 1, 2, 1);
     set_state(b, 2, 2, 1);
-
     return b;
 }
