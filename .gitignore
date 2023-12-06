@@ -64,4 +64,4 @@ template/
 *.png
 *.csv
 *.swp
-
+.vscode
