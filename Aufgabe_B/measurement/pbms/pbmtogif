@@ -1,2 +1,2 @@
 for FILENAME in $(ls *.pbm); do convert $FILENAME ${FILENAME%.*}.png ;done
-convert -size 1080x1080 -delay 2 -loop 0 *.png output.gif
+convert -size 1080x1080 -density 600 -delay 10 -loop 0 *.png output.gif
