@@ -13,4 +13,4 @@ gol_main: gol_main.o visualize.o gol_board.o
 	gcc -o gol_main gol_main.o visualize.o gol_board.o
 
 clean:
-	rm gol_board.o visualize.o gol_main.o gol_main
+	rm gol_board.o visualize.o gol_main.o gol_main test.pbm

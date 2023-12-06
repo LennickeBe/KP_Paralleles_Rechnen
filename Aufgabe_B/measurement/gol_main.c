@@ -5,6 +5,6 @@
 void main ()
 {
     board *b;
-    b = init_board(5,5);
+    b = init_board(10,10);
     create_pbm(b, "test.pbm");
 }
