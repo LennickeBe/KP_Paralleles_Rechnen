@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <omp.h>
 
 #include "gol_board.h"
 
@@ -89,6 +90,25 @@ void update_board(board *b)
         
     }
    free(buf);
+}
+
+
+void update_board_threaded(board *b)
+{
+    int i, j;
+    board *buf;
+    buf = create_board_copy(b);
+    int nthreads;
+#pragma omp parallel for num_threads(6)
+    for ( i = 0; i < b->rows; i++)
+    {
+        for ( j = 0; j < b->cols; j++)
+        {
+            set_state(b, j, i, get_new_state(buf, j, i));
+        }
+        
+    }
+   free(buf); 
 }
 
 
