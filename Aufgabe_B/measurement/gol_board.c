@@ -5,6 +5,24 @@
 
 #include "gol_board.h"
 
+
+bool board_compare(board *b1, board *b2)
+{
+    if (b1->rows != b2->rows) return false;
+    if (b1->cols != b2->cols) return false;
+    if (memcmp(b1->grid, b2->grid, b1->cols*b1->rows*sizeof(bool))) return false;
+    return true;
+}
+
+board * create_board_copy(board *b)
+{
+    board *buf;
+    size_t size = 2*sizeof(int) + (b->rows * b->cols) * sizeof(bool);
+    buf = malloc(size);
+    memcpy(buf, b, size);
+    return buf;
+}
+
 void coords_on_board(board *b, int *x, int *y)
 {
     if ( *x < 0 || *x >= b->cols)
@@ -55,14 +73,12 @@ bool get_new_state(board *b, int x, int y)
     }
 }
 
+
 void update_board(board *b)
 {
     int i, j;
     board *buf;
-    size_t size = 2*sizeof(int) + (b->rows * b->cols) * sizeof(bool);
-    buf = malloc(size);
-    memcpy(buf, b, size);
- 
+    buf = create_board_copy(b);
 
     for ( i = 0; i < b->rows; i++)
     {
@@ -76,7 +92,16 @@ void update_board(board *b)
 }
 
 
-board* init_board(int rows, int cols) {
+/*
+ * returns a random int within the given range
+ * utilizes the rand() method from math.h
+ */
+int random_int(int min, int max){
+   return min + rand() / (RAND_MAX / (max - min + 1) + 1);
+}
+
+
+board* init_board(int rows, int cols, int start_cells) {
     board *b = calloc(1, 2*sizeof(int) + (rows * cols) * sizeof(bool));
     b->rows = rows;
     b->cols = cols;
@@ -86,10 +111,24 @@ board* init_board(int rows, int cols) {
     // 001
     // 101
     // 011
-    set_state(b, 2, 0, 1);
-    set_state(b, 0, 1, 1);
-    set_state(b, 2, 1, 1);
-    set_state(b, 1, 2, 1);
-    set_state(b, 2, 2, 1);
+    if (start_cells)
+    {
+        #include <math.h>
+        int i;
+        for ( i = 0; i < start_cells; i++)
+        {
+            set_state(b, random_int(0,b->cols),
+                         random_int(0,b->rows),
+                         1);
+        }
+    }
+    else
+    {
+        set_state(b, 2, 0, 1);
+        set_state(b, 0, 1, 1);
+        set_state(b, 2, 1, 1);
+        set_state(b, 1, 2, 1);
+        set_state(b, 2, 2, 1);
+    }
     return b;
 }

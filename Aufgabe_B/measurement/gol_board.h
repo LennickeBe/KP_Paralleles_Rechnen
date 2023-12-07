@@ -3,9 +3,6 @@
 
 #include <stdbool.h>
 
-
-
-
 /*
 (0,0) -> (x, 0)
  |   \
@@ -21,6 +18,7 @@ typedef struct
     bool grid[0];
 } board;
 
-board * init_board(int rows, int cols);
+board * init_board(int rows, int cols, int start_cells);
 void update_board(board *b);
+board * create_board_copy(board *b);
 #endif
