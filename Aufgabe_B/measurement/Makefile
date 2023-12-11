@@ -1,7 +1,7 @@
 all: gol_main
 
 gol_board.o: gol_board.c
-	gcc -c gol_board.c
+	gcc -fopenmp -c gol_board.c
 
 visualize.o: visualize.c
 	gcc -c visualize.c
