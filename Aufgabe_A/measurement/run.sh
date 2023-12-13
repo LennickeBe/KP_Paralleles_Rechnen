@@ -7,8 +7,13 @@
 #SBATCH --output=kp_pr_aufgabe_a_%j.out
 #SBATCH --error=kp_pr_aufgabe_a_%j.err
 
+module load GCCcore/10.3.0
+
+# make sure the target directory for the data is there
+mkdir -p ../evaluation/data
+
 # make sure the executable is there
 make clean
 make all
 
-srun './string_measurement'
+srun './string_manipulation'

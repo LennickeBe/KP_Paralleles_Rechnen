@@ -44,3 +44,6 @@ Eine Messung wird mit dem sbatch script 'run.sh' im Repository unter 'Aufgabe_A/
 cd KP_Paralleles_Rechnen/Aufgabe_A/measurement
 sbatch run.sh
 ```
+
+### Auswertung
+Die Daten werden durch ein python Programm ausgewertet.
