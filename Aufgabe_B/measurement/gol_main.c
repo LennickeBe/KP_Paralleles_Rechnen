@@ -5,6 +5,12 @@
 #include <time.h>
 
 
+float get_time_diff_in_s(struct timespec start, struct timespec end)
+{
+	return ((end.tv_sec - start.tv_sec) +
+		((end.tv_nsec - start.tv_nsec) / 1000000000.0));
+}
+
 
 
 void main ()
@@ -17,7 +23,9 @@ void main ()
     b = init_board(1000,1000, 150000);
     b1 = create_board_copy(b);
     b2 = create_board_copy(b);
-    create_pbm(b1, "pbms/test.pbm");
+   
+    // sequential
+    //create_pbm(b1, "pbms/test.pbm");
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (int i = 0; i < 80; i++)
     {
@@ -27,8 +35,13 @@ void main ()
     }
     clock_gettime(CLOCK_MONOTONIC, &end);
     printf("start: %lds %ldns\nend: %lds %ldns\n", start.tv_sec, start.tv_nsec, end.tv_sec, end.tv_nsec);
+    printf("\t = %2.4fs\n", get_time_diff_in_s(start, end));
 
-    create_pbm(b1, "pbms/foo.pbm");
+    // parallel
+    //create_pbm(b1, "pbms/foo.pbm");
+    for (int j = 0; j < 20; j++)
+    {
+    b2 = create_board_copy(b);
     clock_gettime(CLOCK_MONOTONIC, &start);
     for (int i = 0; i < 80; i++)
     {
@@ -38,4 +51,6 @@ void main ()
     }
     clock_gettime(CLOCK_MONOTONIC, &end);
     printf("start: %lds %ldns\nend: %lds %ldns\n", start.tv_sec, start.tv_nsec, end.tv_sec, end.tv_nsec);
+    printf("\t = %2.4fs\n", get_time_diff_in_s(start, end));
+    }
 }

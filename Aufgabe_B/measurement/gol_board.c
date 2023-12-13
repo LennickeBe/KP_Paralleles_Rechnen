@@ -102,6 +102,7 @@ void update_board_threaded(board *b)
 #pragma omp parallel for num_threads(6)
     for ( i = 0; i < b->rows; i++)
     {
+    #pragma omp parallel for num_threads(2)
         for ( j = 0; j < b->cols; j++)
         {
             set_state(b, j, i, get_new_state(buf, j, i));
