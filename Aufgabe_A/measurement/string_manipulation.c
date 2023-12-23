@@ -11,6 +11,7 @@
  */
 int time_diff_in_ns(struct timespec start, struct timespec end)
 {
+	// seconds times 10^9 for nanoseconds
 	return (1000000000 * (end.tv_sec - start.tv_sec) +
 		(end.tv_nsec - start.tv_nsec));
 }
@@ -170,7 +171,6 @@ int measurement(FILE *file, int iterations, int len_string)
 
 int main()
 {
-	char *test_word;
 	int len_string; 	
 	FILE *file;
 
