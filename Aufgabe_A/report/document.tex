@@ -1,5 +1,6 @@
 \documentclass[plainarticle,zihtitle,german,final,hyperref,utf8]{zihpub}
 \usepackage{setspace}
+\usepackage{listings}
 \author{Bengt Lennicke}
 \title{Komplexpraktikum "Paralleles Rechnen" \newline A - Stringmanipulationen mit Intrinsics}
 
@@ -34,6 +35,35 @@ int countChar(char* string, int len_string, char c)
 	
 \end{itemize}
 
+\section{Umsetzung}
+\subsection{string\_manipulation.c}
+Das Programm ist aufgeteilt in Dateien für den sequentiellen und parallelen Ansatz und einer "main" Datei, welche die Laufzeitmessungen für beide Umsetzungen durchführt. Dabei wird in der "main"-Funktion für die jeweiligen Stringlängen (10.000, 100.000,...)  jeweils eine csv-Datei geöffnet und die "measurement"-Funktion aufgerufen.
+
+Zunächst werden noch einige Register initialisiert, welche für die parallelen Berechnungen notwendig sind. Näheres dazu im Kapitel \ref{subsec:par}.
+\begin{lstlisting}[language=c]
+	int main()
+	{
+		char *test_word;
+		int len_string; 	
+		FILE *file;
+		
+		init_register();
+		
+		// 10000
+		file = fopen("../evaluation/data/string_times_10000.csv", "w");
+		if (measurement(file, 100, 10000))
+		{
+			return 1;
+		}
+		fclose(file);
+		
+		...
+	}
+\end{lstlisting}
+
+\subsection{string\_manipulation\_seq.c}
+\subsection{string\_manipulation\_par.c}\label{subsec:par}
+
 \section{Auswertung}
 \subsection{Zeitkomplexität}
 Die sequentiellen Funktionen für 'uppercasing', 'lowercasing' von Strings und dem Zählen von bestimmte Buchstaben in einem String sind in der Datei "string\_manipulation\_seq.c".
@@ -44,7 +74,7 @@ Alle drei Funktionen arbeiten mit einem while loop, in welchem jedes Zeichen bea
 \newline
 
 Die parallelen Funktionen sind in der Datei "string\_manipulation\_par.c" und heißen "toUppercasePar", "toLowercasePar" und "countCharPar".
-Die Funktionen laden jeweils 32 Zeichen des Eingabe Strings in ein 256-bit Register. Wobei der nicht-durch-32-teilbare Rest in einen neu allokierten String geladen wird, welcher dann in das Register geladen wird. Die Funktionen zum 'uppercasing' etc. werden dann auf die jeweilingen Register angewendet.
+Die Funktionen laden jeweils 32 Zeichen des Eingabe Strings in ein 256-bit Register und bearbeiten dieses; arbeiten also in 32 Charakter Schritten.
 Damit hängt die Bearbeitungszeit davon ab wie viele 32-Charakter Blöcke existieren bzw. damit von der Länge des Strings. Die asymptotische Zeitkomplexität ist also ebenfalls: O(n).
 \newline
 
@@ -53,7 +83,7 @@ Hier wird die durchschnittlich benötigte Rechenzeit in Abhängigkeit von der St
 Die logarithmischen Skalen wurden gewählt, weil sonst die Messpunkte von 10k, 100k und einer Million sehr dicht zusammen liegen im Vergleich zu 100 Millionen.
 
 
-\begin{figure}
+\begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.7\textwidth]{images/complex_upper.png}
 		\caption{Durchschnittliche Durchführungszeit von toUppercase() in Abhängigkeit von der Stringlänge.}
@@ -61,7 +91,7 @@ Die logarithmischen Skalen wurden gewählt, weil sonst die Messpunkte von 10k, 1
 	\end{center}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.7\textwidth]{images/complex_lower.png}
 		\caption{Durchschnittliche Durchführungszeit von toLowercase() in Abhängigkeit von der Stringlänge.}
@@ -69,7 +99,7 @@ Die logarithmischen Skalen wurden gewählt, weil sonst die Messpunkte von 10k, 1
 	\end{center}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.7\textwidth]{images/complex_count.png}
 		\caption{Durchschnittliche Durchführungszeit von countChar() in Abhängigkeit von der Stringlänge.}
@@ -139,30 +169,30 @@ Es ist zu sehen, dass die sequentielle Ausführung in für jede Stringlänge meh
 
 \newpage
 \subsection{Vergleich}
-In den folgenden Abbildungen sind die Laufzeiten für jeweils 100 verschiedene Strings aufgezeigt. Dabei sind pro Funktion 4 Abbildungen für je 10.000, 100.000, 1.000.000 und 100.000.000 Zeichen in den Strings. Die Diagramme veranschaulichen den Vergleich zwischen dem sequentiellen Ansatz und dem paralleln Ansatz unter Verwendung von SIMD.
+In den folgenden Abbildungen sind 100 Laufzeiten für das Verarbeiten eines Strings aufgezeigt. Dabei sind pro Funktion 4 Abbildungen für je 10.000, 100.000, 1.000.000 und 100.000.000 Zeichen in den Strings. Die Diagramme veranschaulichen den Vergleich zwischen dem sequentiellen und parallelen Ansatz unter Verwendung von SIMD.
 \subsubsection{toUppercase}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_upper_10000.png}
-		\caption{Durchführungszeiten von toUppercase mit 100 verschiedenen Strings mit 10.000 Zeichen.}
+		\caption{Durchführungszeiten von toUppercase für einen String mit 10.000 Zeichen.}
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 \begin{center}
 	\includegraphics[width=0.65\textwidth]{images/comp_upper_100000.png}
-	\caption{Durchführungszeiten von toUppercase mit 100 verschiedenen Strings mit 100.000 Zeichen.}
+	\caption{Durchführungszeiten von toUppercase für einen String mit 100.000 Zeichen.}
 \end{center}
 \end{figure}
 \begin{figure}[h]
 \begin{center}
 	\includegraphics[width=0.65\textwidth]{images/comp_upper_1000000.png}
-	\caption{Durchführungszeiten von toUppercase mit 100 verschiedenen Strings mit 1.000.000 Zeichen.}
+	\caption{Durchführungszeiten von toUppercase für einen String mit 1.000.000 Zeichen.}
 \end{center}
 \end{figure}
 \begin{figure}[h]
 \begin{center}
 	\includegraphics[width=0.65\textwidth]{images/comp_upper_100000000.png}
-	\caption{Durchführungszeiten von toUppercase mit 100 verschiedenen Strings mit 100.000.000 Zeichen.}
+	\caption{Durchführungszeiten von toUppercase für einen String mit 100.000.000 Zeichen.}
 \end{center}
 \end{figure}
 
