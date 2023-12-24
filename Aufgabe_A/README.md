@@ -46,4 +46,28 @@ sbatch run.sh
 ```
 
 ### Auswertung
-Die Daten werden durch ein python Programm ausgewertet.
+Die Daten werden durch ein python Programm ausgewertet. Dafür wird die Python Version 3.9.5 empfohlen und benötigt numpy (1.24.1), pandas (2.0.0) und matplotlib (3.3.4).
+
+Das python Programm ist unter 'evaluation/evaluation.py' zu finden.
+Für eine Auswertung auf "romeo" ist folgendes Setup notwendig
+
+```
+module load release/23.04
+module load GCCcore/10.3.0
+module load Python/3.9.5
+cd <repo root directory>/evaluation
+python3 -m venv .venv
+source .venv/bin/activate
+pip install numpy==1.24.1 pandas==2.0.0 matplotlib==3.3.4
+```
+
+Für eine lokale Auswertung muss das eigene Setup entsprechend angepasst werden, dass die Versionen eingehalten werden.
+
+Gestartet wird die Auswertung dann mit:
+
+```
+cd <repo root directory>/evaluation
+source .venv/bin/activate
+python3 evaluation.py
+```
+
