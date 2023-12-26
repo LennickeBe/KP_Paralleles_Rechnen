@@ -37,13 +37,12 @@ int countChar(char* string, int len_string, char c)
 
 \section{Umsetzung}
 \subsection{string\_manipulation.c}
-Das Programm ist aufgeteilt in Dateien für den sequentiellen und parallelen Ansatz und einer "main" Datei, welche die Laufzeitmessungen für beide Umsetzungen durchführt. Dabei wird in der "main"-Funktion für die jeweiligen Stringlängen (10.000, 100.000,...)  jeweils eine csv-Datei geöffnet und die "measurement"-Funktion aufgerufen.
+Das Programm ist aufgeteilt in Dateien für den sequentiellen und parallelen Ansatz und einer 'main'-Datei, welche die Laufzeitmessungen für beide Umsetzungen durchführt. Die 'main'-Datei ist 'string\_manipulation.c'. Der Anfang der 'main'-Funktion darin ist im folgenden zu sehen.
 
-Zunächst werden noch einige Register initialisiert, welche für die parallelen Berechnungen notwendig sind. Näheres dazu im Kapitel \ref{subsec:par}.
-\begin{lstlisting}[language=c]
+\label{code:main} % TODO is there a better way to do this?
+\begin{lstlisting}[language=c, numbers=left]
 	int main()
 	{
-		char *test_word;
 		int len_string; 	
 		FILE *file;
 		
@@ -57,18 +56,144 @@ Zunächst werden noch einige Register initialisiert, welche für die parallelen 
 		}
 		fclose(file);
 		
+		// 100.000
 		...
 	}
 \end{lstlisting}
 
+Zunächst werden einige Register initialisiert (\ref{code:main} line 6), welche für die parallelen Berechnungen notwendig sind. Näheres dazu im Kapitel \ref{subsec:par}. Anschließend wird für die jeweiligen Stringlängen (10.000, 100.000,...) eine csv-Datei geöffnet (line 9) und die "measurement"-Funktion aufgerufen.
+
+\begin{lstlisting}[language=c, numbers=left]
+	int measurement(FILE *file, int iterations, int len_string)
+	{
+		char *string;
+		int i;
+		string = rand_string_alloc(len_string);
+		fprintf(file,
+		"count_par,count_seq,upper_par,upper_seq,lower_par,lower_seq\n");
+		for(i = 0; i < iterations; i++)
+		{
+			
+			if (measure(file, string, len_string))
+			{
+				return 1;
+			}
+		}
+		free(string);
+		return 0;
+	}
+	
+\end{lstlisting}
+
+In der 'measurement'-Funktion wird ein zufälliger String mit gegebener Länge wird erstellt.
+Das Ergebnis der Messung wird in Form einer csv-Datei festgehalten. Daher wird die Header-Zeile mit den Spaltennamen in die übergebene Datei geschrieben (line 6-7). Die Spaltenamen sind in der Reihenfolge der Messungen in der 'measure' Funktion.
+Anschließend wird 'iterations'-mal mit dem gebildeten String die 'measure'-Funktion aufgerufen.
+
+Die 'measure'-Funktion führt für den gegebenen String die sequentiellen und parallelen Funktionen für 'toUppercase', 'toLowercase' und 'countChar' aus und schreibt die gemessenen Laufzeiten in die gegebene Datei im csv Format.
+\begin{lstlisting}[language=c, numbers=left]
+	int measure(FILE *file, char *string, int len_string)
+	{
+		int par_count, seq_count;
+		struct timespec start, end;
+		
+		// string gets changed so we work with duplicates to be able to reset
+		char *seq_string, *par_string;
+		seq_string = malloc(len_string * sizeof(char));
+		par_string = malloc(len_string * sizeof(char));
+		strncpy(seq_string, string, len_string);
+		strncpy(par_string, string, len_string);
+\end{lstlisting}
+
+Da die jeweiligen Stringverarbeitungsfunktionen mit Pointern auf den String arbeiten und den gegebenen String inplace verarbeitet wird, wird in line 8-11 der String in neu-allokiertem Speicher kopiert.
+Es wird für se­quen­ti­ell und parallel jeweils ein String vorbereitet, damit die Ergebnisse der Funktionen vergleicht werden können, um die Korrektheit der Ansatze zu versichern.
+
+\begin{lstlisting}[language=c, numbers=left]		
+		// start with count as no reset necessary after
+		// count
+		clock_gettime(CLOCK_MONOTONIC, &start);	
+		par_count = countCharPar(par_string, len_string, 'c');
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		fprintf(file, "%d,", time_diff_in_ns(start, end));	
+		
+		clock_gettime(CLOCK_MONOTONIC, &start);	
+		seq_count = countCharSeq(seq_string, len_string, 'c');
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		fprintf(file, "%d,", time_diff_in_ns(start, end));	
+		if (par_count != seq_count)
+		{
+			fprintf(stderr, "Counting does not match up.\n");
+			return 1;
+		}
+\end{lstlisting}
+
+Die erste Messung ist für die 'countChar' Funktion. Diese Funktion verändert den übergebenen String nicht, daher können 'seq\_string' und 'par\_string' für die Messung danach nochmal verwendet werden. Die Zähl-Messung zu Beginn spart daher einmal das erneuern der Strings.
+Für die Messung der Zeit wird mit der 'clock\_gettime'-Funktion vor und nach dem Funktionsaufruf verwendet. Ich habe die clockid 'CLOCK\_MONOTONIC' gewählt, weil ich diese im Zusammenhang mit 'Laufzeitmessungen in C' am meisten gefunden habe und es funktioniert hat. Inhaltlich würden hier auch andere möglich seien.
+Der Unterschied zwischen den beiden Zeitstempeln in Nanosekunden wird dann in die übergebene Datei geschrieben, jeweils mit einem Komma dazu für das csv-Format.
+Es wird zunächst die Laufzeit der 'countCharPar'-Funktion in line 3-6 gemessen und geschrieben; analog in line 8-11 für die Funktion 'countCharSeq'.
+Anschließend werden die Ergebnisse verglichen und die Funktion bricht ab, wenn beide Ansätze nicht zum gleichen Ergebnis gekommen sind.
+		
+\begin{lstlisting}[language=c, numbers=left]		
+		// uppercase
+		clock_gettime(CLOCK_MONOTONIC, &start);	
+		toUppercasePar(par_string, len_string);
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		fprintf(file, "%d,", time_diff_in_ns(start, end));	
+		
+		clock_gettime(CLOCK_MONOTONIC, &start);	
+		toUppercaseSeq(seq_string, len_string);
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		fprintf(file, "%d,", time_diff_in_ns(start, end));	
+		if (strcmp(par_string, seq_string))
+		{
+			fprintf(stderr, "toUppercase does not match up.\n");
+			return 1;
+		}
+		
+		// reset
+		strncpy(seq_string, string, len_string);
+		strncpy(par_string, string, len_string);
+\end{lstlisting}		
+
+Die Messung für die 'toUppercase' Funktionen verläuft analog zum Fall darüber. Allerdings werden hier die übergebenen Strings verändert. Damit die 'toLowercase' Funktionen nicht mit reinen Großbuchstaben-Strings arbeiten sondern ebenfalls mit dem in der 'measurement'-Funktion Bestimmten, werden 'seq\_string' und 'par\_string' zum Schluss  resettet.
+
+\begin{lstlisting}[language=c, numbers=left]		
+		// lowercase
+		clock_gettime(CLOCK_MONOTONIC, &start);	
+		toLowercasePar(par_string, len_string);
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		fprintf(file, "%d,", time_diff_in_ns(start, end));	
+		
+		clock_gettime(CLOCK_MONOTONIC, &start);	
+		toLowercaseSeq(seq_string, len_string);
+		clock_gettime(CLOCK_MONOTONIC, &end);
+		fprintf(file, "%d\n", time_diff_in_ns(start, end));	
+		if (strcmp(par_string, seq_string))
+		{
+			fprintf(stderr, "toLowercase does not match up.\n");
+			return 1;
+		}
+		
+		free(par_string);
+		free(seq_string);
+		return 0;
+	}
+	
+\end{lstlisting}
+
+
+Anschließend findet noch die Messung für die 'toLowercase' Funktionen statt.
+Hier wird in line 10 anstelle des Kommas ein Zeilenumbruch in die csv-Datei geschrieben, da die Ergebnisse der nächsten Messung in die nächste Zeile gehören.
+
+
 \subsection{string\_manipulation\_seq.c}
+Die Funktionen 'countCharSeq', 'toUppercaseSeq' und 'toLowercaseSeq' sind in 
 \subsection{string\_manipulation\_par.c}\label{subsec:par}
 
 \section{Auswertung}
 \subsection{Zeitkomplexität}
-Die sequentiellen Funktionen für 'uppercasing', 'lowercasing' von Strings und dem Zählen von bestimmte Buchstaben in einem String sind in der Datei "string\_manipulation\_seq.c".
+Die se­quen­ti­ellen Funktionen für 'uppercasing', 'lowercasing' von Strings und dem Zählen von bestimmte Buchstaben in einem String sind in der Datei "string\_manipulation\_seq.c".
 
-Die Funktionen heißen "toUppercaseSeq", "toLowercaseSeq" und "countCharSeq". Ich bin hier von den Namen der Aufgabenstellung abgewichen, damit ich den sequentiellen und paralleln Ansatz in einer Main Datei gleichzeitig importieren/nutzen kann.
+Die Funktionen heißen "toUppercaseSeq", "toLowercaseSeq" und "countCharSeq". Ich bin hier von den Namen der Aufgabenstellung abgewichen, damit ich den se­quen­ti­ellen und paralleln Ansatz in einer Main Datei gleichzeitig importieren/nutzen kann.
 
 Alle drei Funktionen arbeiten mit einem while loop, in welchem jedes Zeichen bearbeitet wird und anschließend der Pointer auf das nächste Zeichen bewegt wird. Damit hängt die Bearbeitungszeit linear von der Stringlänge ab. Die asymptotische Zeitkomplexität ergibt sich damit zu: O(n).
 \newline
@@ -111,11 +236,11 @@ Die logarithmischen Skalen wurden gewählt, weil sonst die Messpunkte von 10k, 1
 \subsection{Ausführungszeiten}
 \subsubsection{toUppercase}
 In der Tabelle \ref{Tab:uppertab} sind die Zeitmessungen für die toUppercase() Funktionen zusammengefasst.
-Es ist deutlich zu sehen, dass die sequentielle Ausführung in für jede Stringlänge mehr Zeit benötigt als die Umsetzung mit SIMD.
+Es ist deutlich zu sehen, dass die se­quen­ti­elle Ausführung in für jede Stringlänge mehr Zeit benötigt als die Umsetzung mit SIMD.
 \newline
 \begin{tabular}{|c|r|l|r|l|}
 	\hline
-	\multicolumn{1}{|c|}{String Länge} & \multicolumn{2}{c|}{parallel in ns} & \multicolumn{2}{c|}{sequentiell in ns} \\
+	\multicolumn{1}{|c|}{String Länge} & \multicolumn{2}{c|}{parallel in ns} & \multicolumn{2}{c|}{se­quen­tiell­ in ns} \\
 	\cline{2-5}
 	& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\
 	\hline
