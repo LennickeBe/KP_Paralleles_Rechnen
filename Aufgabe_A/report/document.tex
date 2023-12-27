@@ -206,7 +206,9 @@ Die Funktionen 'countCharSeq', 'toUppercaseSeq' und 'toLowercaseSeq' sind in 'st
 
 Im sequentiellen Ansatz wird der String sowie die Stringlänge übergeben. Die Übergabe der Stringlänge war in der Aufgabenstellung gefordert, wird aber nicht benötigt.
 
-In der Funktion gibt es einen while-loop, welcher durchläuft solange der Pointer '*string' nicht '\0' ist. Dieses Zeichen markiert das Ende von Strings, sodass der Loop arbeitet bis der Pointer auf das Ende des Strings zeigt.
+In der Funktion gibt es einen while-loop, welcher durchläuft solange der Pointer 
+%TODO this does not work
+ '\begin{verbatim}*string\end{verbatim}' nicht '\begin{verbatim}\0\end{verbatim}' ist. Dieses Zeichen markiert das Ende von Strings, sodass der Loop arbeitet bis der Pointer auf das Ende des Strings zeigt.
 
 Im Loop wird das Zeichen worauf der Pointer aktuell zeigt ersetzt, durch das Ergebnis der 'toupper'-Funktion aus der 'ctype.h' Bibliothek (line5). Diese Funktion nimmt ein Zeichen und wenn es ein lowercase Charakter ist, dann wird der passende uppercase Charakter zurückgegeben. Anschließend wird der Pointer auf das nächste Zeichen im String bewegt und der Loop beginnt erneut (line 6).
 
@@ -233,6 +235,45 @@ Die 'countCharSeq'-Funktion arbeitet mit dem gleichen Loop-System wie die andere
 
 
 \subsection{string\_manipulation\_par.c}\label{subsec:par}
+% TODO move this?
+Die Funktionen 'countCharPar', 'toUppercasePar' und 'toLowercasePar' sind in 'string\_manipulation\_par.c' definiert.
+
+Die parallele Umsetzung erfolgt mit SIMD dh. unter der Verwendung von Vektorregistern. Für die jeweiligen Funktionen sind 5 Register mit bestimmten konstanten Werten notwendig. Daher sind diese zu Beginn des Programms global definiert.
+\begin{lstlisting}[language=c, numbers=left]
+	__m256i upper_low_limit;
+	__m256i lower_low_limit;
+	__m256i upper_up_limit;
+	__m256i lower_up_limit;
+	__m256i register_of_32;
+\end{lstlisting}
+
+Diese globalen Variablen sind nicht im Header-File definiert, da Register nicht auf diese Weise deklariert werden können sondern direkt definiert werden, also Speicher besetzt wird. Da das Header-File sowohl in 'string\_manipulation\_par.c' als auch in 'string\_manipulation.c' importiert wird, würde es dadurch zu Problemen kommen. % TODO nochmal testen, war das wirklich der Grund?
+
+Um vor den Berechnungen die richtigen Werte in diese Register zu kommen wird dir 'init\_register()'-Funktion verwendet.
+
+\begin{lstlisting}[language=c, numbers=left]
+void init\_register() \{
+	// register with chars '<' than a
+	lower\_low\_limit = \_mm256\_set1\_epi8('`');
+	// register with chars '>' than z
+	upper\_low\_limit = \_mm256\_set1\_epi8('{');
+	// register with chars '<' than A
+	lower\_up\_limit = \_mm256\_set1\_epi8('@');
+	// register with chars '>' than Z
+	upper\_up\_limit = \_mm256\_set1\_epi8('[');
+	// register with the 8-bit values '32'
+	register\_of\_32 = \_mm256\_set1\_epi8(' ');
+	\}
+\end{lstlisting}
+
+Um später Zeichen finden zu können, welche zu den Groß- bzw. Kleinbuchstaben gehören, sind für den Vergleich die Grenzen im Zahlenraum der ASCII Zeichen notwendig. Im Detail: Kleinbuchstaben gehen von 96-123 (in Zeichen '`' bis '\{') und Großbuchstaben von 64-91 ('@' bis )
+96
+123
+64
+91
+32
+
+
 
 \section{Auswertung}
 \subsection{Zeitkomplexität}
