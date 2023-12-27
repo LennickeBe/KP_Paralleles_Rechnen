@@ -127,9 +127,13 @@ Es wird für se­quen­ti­ell und parallel jeweils ein String vorbereitet, dami
 \end{lstlisting}
 
 Die erste Messung ist für die 'countChar' Funktion. Diese Funktion verändert den übergebenen String nicht, daher können 'seq\_string' und 'par\_string' für die Messung danach nochmal verwendet werden. Die Zähl-Messung zu Beginn spart daher einmal das erneuern der Strings.
-Für die Messung der Zeit wird mit der 'clock\_gettime'-Funktion vor und nach dem Funktionsaufruf verwendet. Ich habe die clockid 'CLOCK\_MONOTONIC' gewählt, weil ich diese im Zusammenhang mit 'Laufzeitmessungen in C' am meisten gefunden habe und es funktioniert hat. Inhaltlich würden hier auch andere möglich seien.
+
+Für die Messung der Zeit wird mit der 'clock\_gettime'-Funktion aus der 'time.h' Bibliothek vor und nach dem Funktionsaufruf verwendet. Ich habe die clockid 'CLOCK\_MONOTONIC' gewählt, weil ich diese im Zusammenhang mit 'Laufzeitmessungen in C' am meisten gefunden habe und es funktioniert hat. Inhaltlich würden hier auch andere möglich seien.
+
 Der Unterschied zwischen den beiden Zeitstempeln in Nanosekunden wird dann in die übergebene Datei geschrieben, jeweils mit einem Komma dazu für das csv-Format.
+
 Es wird zunächst die Laufzeit der 'countCharPar'-Funktion in line 3-6 gemessen und geschrieben; analog in line 8-11 für die Funktion 'countCharSeq'.
+
 Anschließend werden die Ergebnisse verglichen und die Funktion bricht ab, wenn beide Ansätze nicht zum gleichen Ergebnis gekommen sind.
 		
 \begin{lstlisting}[language=c, numbers=left]		
@@ -180,13 +184,54 @@ Die Messung für die 'toUppercase' Funktionen verläuft analog zum Fall darüber
 	
 \end{lstlisting}
 
-
 Anschließend findet noch die Messung für die 'toLowercase' Funktionen statt.
 Hier wird in line 10 anstelle des Kommas ein Zeilenumbruch in die csv-Datei geschrieben, da die Ergebnisse der nächsten Messung in die nächste Zeile gehören.
 
 
 \subsection{string\_manipulation\_seq.c}
-Die Funktionen 'countCharSeq', 'toUppercaseSeq' und 'toLowercaseSeq' sind in 
+Die Funktionen 'countCharSeq', 'toUppercaseSeq' und 'toLowercaseSeq' sind in 'string\_manipulation\_seq.c' definiert.
+
+\begin{lstlisting}[language=c, numbers=left]
+	int toUppercaseSeq(char *string, int len_string)
+	{
+		while(*string)
+		{
+			*string = toupper(*string);
+			*string++;
+		}
+		return 0;
+	}
+	
+\end{lstlisting}
+
+Im sequentiellen Ansatz wird der String sowie die Stringlänge übergeben. Die Übergabe der Stringlänge war in der Aufgabenstellung gefordert, wird aber nicht benötigt.
+
+In der Funktion gibt es einen while-loop, welcher durchläuft solange der Pointer '*string' nicht '\0' ist. Dieses Zeichen markiert das Ende von Strings, sodass der Loop arbeitet bis der Pointer auf das Ende des Strings zeigt.
+
+Im Loop wird das Zeichen worauf der Pointer aktuell zeigt ersetzt, durch das Ergebnis der 'toupper'-Funktion aus der 'ctype.h' Bibliothek (line5). Diese Funktion nimmt ein Zeichen und wenn es ein lowercase Charakter ist, dann wird der passende uppercase Charakter zurückgegeben. Anschließend wird der Pointer auf das nächste Zeichen im String bewegt und der Loop beginnt erneut (line 6).
+
+Die Funktion 'toLowercaseSeq' funktioniert exakt analog und unterscheidet sich nur in line 5; dort wird 'tolower' anstelle von 'toupper' verwendet.
+
+\begin{lstlisting}[language=c, numbers=left]
+	int countCharSeq(char *string, int len_string, char c)
+	{
+		int count = 0;
+		while(*string)
+		{
+			if (strncmp(string, &c, 1) == 0)
+			{
+				count++;
+			}
+			*string++;
+		}
+		return count;
+	}
+	
+\end{lstlisting}
+
+Die 'countCharSeq'-Funktion arbeitet mit dem gleichen Loop-System wie die anderen beiden Funktionen. Anstelle von 'toupper' und 'tolower' wird allerdings überprüft, ob das Zeichen am Ziel des aktuellen Pointers dem übergebenen, zu zählendem Zeichen entspricht. Falls 'strncmp' aus 'string.h' eine Übereinstimmung feststellt wird ein Zähler um 1 erhöht. Der Wert dieser Variable ist am Ende des Loops die Anzahl wie oft das gesuchte Zeichen im gegebenen String vorkommt und wird als Ergebnis zurückgegeben.
+
+
 \subsection{string\_manipulation\_par.c}\label{subsec:par}
 
 \section{Auswertung}
