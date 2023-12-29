@@ -252,26 +252,103 @@ Diese globalen Variablen sind nicht im Header-File definiert, da Register nicht 
 Um vor den Berechnungen die richtigen Werte in diese Register zu kommen wird dir 'init\_register()'-Funktion verwendet.
 
 \begin{lstlisting}[language=c, numbers=left]
-void init\_register() \{
-	// register with chars '<' than a
-	lower\_low\_limit = \_mm256\_set1\_epi8('`');
-	// register with chars '>' than z
-	upper\_low\_limit = \_mm256\_set1\_epi8('{');
-	// register with chars '<' than A
-	lower\_up\_limit = \_mm256\_set1\_epi8('@');
-	// register with chars '>' than Z
-	upper\_up\_limit = \_mm256\_set1\_epi8('[');
-	// register with the 8-bit values '32'
-	register\_of\_32 = \_mm256\_set1\_epi8(' ');
-	\}
+	void init_register()
+	{
+		// register with chars '<' than a
+		lower_low_limit = _mm256_set1_epi8('`');
+		// register with chars '>' than z
+		upper_low_limit = _mm256_set1_epi8('{');
+		// register with chars '<' than A
+		lower_up_limit = _mm256_set1_epi8('@');
+		// register with chars '>' than Z
+		upper_up_limit = _mm256_set1_epi8('[');
+		// register with the 8-bit values '32'
+		register_of_32 = _mm256_set1_epi8(' ');
+	}
 \end{lstlisting}
 
-Um später Zeichen finden zu können, welche zu den Groß- bzw. Kleinbuchstaben gehören, sind für den Vergleich die Grenzen im Zahlenraum der ASCII Zeichen notwendig. Im Detail: Kleinbuchstaben gehen von 96-123 (in Zeichen '`' bis '\{') und Großbuchstaben von 64-91 ('@' bis )
-96
-123
-64
-91
-32
+Um später Zeichen finden zu können, welche zu den Groß- bzw. Kleinbuchstaben gehören, sind für den Vergleich die Grenzen im Zahlenraum der ASCII Zeichen notwendig. Im Detail: Kleinbuchstaben gehen von 96-123 (in Zeichen '`' bis '\{') und Großbuchstaben von 64-91 ('@' bis '{[}').
+
+Ein 'char' in C ist 8 Bits groß. Daher wird im gesamten Programm in den Registern mit 8Bit Bereichen gearbeitet.
+
+Das Verarbeiten der Strings mit Vektorregistern teilt sich in 2 Schritte: Ein-/Auslesen des Strings in die Register und das Verarbeiten der einzelnen Register.
+
+Das Ein- und Auslesen in die Register läuft für 'lowercase', 'uppercase' und 'countChar' analog. Im folgenden wird beispielhaft die Umsetzung für 'toLowercase' betrachtet.
+
+\begin{lstlisting}[language=c, numbers=left]
+	int toLowercasePar(char *string, int len_string)
+	{
+		int i, filler_size;
+		char *filler_string;
+		__m256i xmm;
+		
+		// a register can hold 32 chars (8bit ints)
+		// so we work on 32 chars of the string at a time
+		for ( i=0; i<=len_string-32; i+=32)
+		{
+			xmm = _mm256_loadu_si256((__m256i*) string);
+			regToLowercase(&xmm);
+			_mm256_storeu_si256((__m256i*) string, xmm);
+			string+=32;
+		}
+		
+		// to avoid naughty memory access last chars treated different
+		filler_size = len_string % 32;
+		if (filler_size != 0)
+		{
+			filler_string = (char*) malloc(32*sizeof(char));
+			// remaining chars into allocated 32 bytes memory
+			strncpy(filler_string, string, filler_size);
+			xmm = _mm256_loadu_si256((__m256i*) filler_string);
+			regToLowercase(&xmm);
+			_mm256_storeu_si256((__m256i*) filler_string, xmm);	
+			// load the relevant chars back into original string
+			strncpy(string, filler_string, filler_size);
+			free(filler_string);
+		}
+		return 0;
+	}
+\end{lstlisting}
+
+In line 9-15 wird der String in 32-Char Schritten durchgegangen, solange noch 32 Zeichen im String sind.
+Anschließend werden die restlichen Zeichen bearbeitet (line 18-30). Der Grund für die Aufteilung ist, dass am Ende des Strings ansonsten die '\_\_m256\_loadu\_si256()'-Funktion auf unallokierten Speicher zugreift bzw. versucht zuzugreifen. Diese Funktion läd 256 Bit, auf die der Pointer '{*}string' im Argument zeigt, in ein Register.
+Dieses Register wird dann an die Funktion 'regToLowercase()' übergeben. Die 256 Bits am Ziel von '{*}string' werden mit '\_\_mm256\_store\_si256()' mit dem verarbeitetem Inhalt des Registers überschrieben.
+
+Für die restlichen Zeichen werden nochmal 32 Bytes allokiert. Ansonsten ist die Verarbeitung analog.
+
+\begin{lstlisting}[language=c, numbers=left]
+	int regToLowercase(__m256i *string)
+	{
+	__m256i is_lower_char = _mm256_and_si256(
+	_mm256_cmpgt_epi8(*string, lower_up_limit),
+	_mm256_cmpgt_epi8(upper_up_limit, *string));
+
+	*string = _mm256_add_epi8(*string,
+	_mm256_and_si256(register_of_32, is_lower_char));
+	return 0;
+	}
+	
+\end{lstlisting}
+
+Die 'regToLowercase' Funktion übernimmt einen Pointer auf ein Register. Jeweils 8 Bit große Bereiche werden verglichen mit den Grenzen für Großbuchstaben verglichen, sodass am Ende 'is\_lower\_char' Einsen hat wo die 8 Bit zu einem Großbuchstaben korrespondieren und Nullen wo nicht.
+
+Dieses Register wird anschließend 'und' verknüpft. Das daraus resultierende Register wird auf das übergebene Register mit String addiert in 8 Bit Blöcken (d.h. ersten 8 Bit auf die ersten 8 Bit usw.). Somit werden nur die 8 Bit Bereiche, welche einen Großbuchstaben beinhalten, um 32 erhöht. Das entspricht einer Umwandlung von Groß- zu Kleinbuchstaben.
+
+Die Umwandlung zu Uppercase funktioniert analog.
+
+Beim Zählen der Zeichen in einem String gibt es einige Unterschiede. Die Funktion, welche das einzelne Register verabreitet, gibt eine Zahl zurück. Diese Zahlen werden aufaddiert anstatt, dass das Register zurück in den String geschrieben wird.
+Dementsprechen sieht auch 'regCountChar' anders aus als beim Umwandeln.
+
+\begin{lstlisting}[language=c, numbers=left]
+	int regCountChar(__m256i *string, char c)
+	{
+		__m256i char_register = _mm256_set1_epi8(c);
+		return bitCount(_mm256_movemask_epi8(_mm256_cmpeq_epi8(*string, char_register)));
+	}
+\end{lstlisting}
+
+
+
 
 
 
