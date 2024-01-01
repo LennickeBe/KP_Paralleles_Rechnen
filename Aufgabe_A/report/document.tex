@@ -336,8 +336,9 @@ Dieses Register wird anschließend 'und' verknüpft. Das daraus resultierende Re
 
 Die Umwandlung zu Uppercase funktioniert analog.
 
+
 Beim Zählen der Zeichen in einem String gibt es einige Unterschiede. Die Funktion, welche das einzelne Register verabreitet, gibt eine Zahl zurück. Diese Zahlen werden aufaddiert anstatt, dass das Register zurück in den String geschrieben wird.
-Dementsprechen sieht auch 'regCountChar' anders aus als beim Umwandeln.
+Dementsprechen sieht auch 'regCountChar' anders aus als beim Umwandeln. 
 
 \begin{lstlisting}[language=c, numbers=left]
 	int regCountChar(__m256i *string, char c)
@@ -347,9 +348,30 @@ Dementsprechen sieht auch 'regCountChar' anders aus als beim Umwandeln.
 	}
 \end{lstlisting}
 
+Zunächst wird ein Register gefüllt mit den gesuchten Zeichen. Anschließend wird das Register des Eingabestrings damit verglichen. Der 8-Bit-Vergleich ergibt ein Register mit Einsen bei Gleichheit und Nullen sonst. Mit '\_\_mm256\_movemask\_epi8()' wird aus den ersten Bits der 8 Bit Blöcke eine Zahl gebildet. Die Einsen in der Binärdarstellung werden gezählt und das Ergebnis wird von 'regCountChar' zurückgegeben.
 
+% TODO zählen in Binärdarstellung
 
+\subsection{Makefile}
 
+\begin{lstlisting}[numbers=left]
+	all: string_manipulation
+	
+	string_manipulation_par.o: string_manipulation_par.c
+	gcc -mavx2 -c string_manipulation_par.c
+	
+	string_manipulation_seq.o: string_manipulation_seq.c
+	gcc -c string_manipulation_seq.c
+	
+	string_manipulation.o: string_manipulation.c
+	gcc -mavx2 -c string_manipulation.c
+	
+	string_manipulation: string_manipulation.o string_manipulation_par.o string_manipulation_seq.o
+	gcc -mavx2 -o string_manipulation string_manipulation.o string_manipulation_seq.o string_manipulation_par.o
+	
+	clean:
+	rm string_manipulation_par.o string_manipulation.o string_manipulation_seq.o string_manipulation
+\end{lstlisting}
 
 
 \section{Auswertung}
