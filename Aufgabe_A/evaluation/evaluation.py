@@ -83,7 +83,7 @@ def comparison_plot(strings: dict,
     """ Creates a scatter plot with the given data and strings.
 
     The given strings dict is from the 'get_strings' function contains
-    the information about the title (together with 'iterations',
+    the information about the title (together with 'str_length',
     labels for the axes, etc.
     The 'series_par' and 'series_seq' are scatter-plotted.
 
@@ -98,7 +98,7 @@ def comparison_plot(strings: dict,
     mean_seq = np.mean(series_seq)
 
     fig, ax = plt.subplots()
-    plt.title(strings["title"]+f"{iterations} chars.", pad=20)
+    plt.title(strings["title"]+f"{str_length} chars.", pad=20)
     plt.ylabel(strings["ylabel"])
     plt.xlabel(strings["xlabel"])
     plt.hlines(mean_par, series_par.index.values[0], series_par.index.values[-1], color=strings["color_par"], label="parallel mean")
@@ -106,7 +106,7 @@ def comparison_plot(strings: dict,
     plt.scatter(series_par.index.values, series_par.values, color=strings["color_par"], label="parallel", marker=strings["marker_par"])
     plt.scatter(series_seq.index.values, series_seq.values, color=strings["color_seq"], label="sequential", marker=strings["marker_seq"])
     plt.legend()
-    plt.savefig(strings["filename"] + f"{iterations}.png", bbox_inches = "tight")
+    plt.savefig(strings["filename"] + f"{str_length}.png", bbox_inches = "tight")
     #plt.show()
     plt.clf()
     plt.cla()
