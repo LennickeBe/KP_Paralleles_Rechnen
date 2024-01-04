@@ -66,7 +66,7 @@ Für eine lokale Auswertung muss das eigene Setup entsprechend angepasst werden,
 Gestartet wird die Auswertung dann mit:
 
 ```
-cd <repo root directory>/evaluation
+cd <repo root directory>/Aufgabe_A/evaluation
 source .venv/bin/activate
 python3 evaluation.py
 ```
