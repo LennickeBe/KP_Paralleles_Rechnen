@@ -187,6 +187,8 @@ Die Messung für die 'toUppercase' Funktionen verläuft analog zum Fall darüber
 Anschließend findet noch die Messung für die 'toLowercase' Funktionen statt.
 Hier wird in line 10 anstelle des Kommas ein Zeilenumbruch in die csv-Datei geschrieben, da die Ergebnisse der nächsten Messung in die nächste Zeile gehören.
 
+Die Ergebnisse sind in Form von csv-Dateien im 'evaluation/data' Ordner in 'Aufgabe\_A' zu finden und können mit einem Python-Skript 'evaluation.py' (\ref{subsec:eval}) ausgewertet werden.
+
 
 \subsection{string\_manipulation\_seq.c}
 Die Funktionen 'countCharSeq', 'toUppercaseSeq' und 'toLowercaseSeq' sind in 'string\_manipulation\_seq.c' definiert.
@@ -234,7 +236,6 @@ Die 'countCharSeq'-Funktion arbeitet mit dem gleichen Loop-System wie die andere
 
 
 \subsection{string\_manipulation\_par.c}\label{subsec:par}
-% TODO move this?
 Die Funktionen 'countCharPar', 'toUppercasePar' und 'toLowercasePar' sind in 'string\_manipulation\_par.c' definiert.
 
 Die parallele Umsetzung erfolgt mit SIMD dh. unter der Verwendung von Vektorregistern. Für die jeweiligen Funktionen sind 5 Register mit bestimmten konstanten Werten notwendig. Daher sind diese zu Beginn des Programms global definiert.
@@ -246,7 +247,7 @@ Die parallele Umsetzung erfolgt mit SIMD dh. unter der Verwendung von Vektorregi
 	__m256i register_of_32;
 \end{lstlisting}
 
-Diese globalen Variablen sind nicht im Header-File definiert, da Register nicht auf diese Weise deklariert werden können sondern direkt definiert werden, also Speicher besetzt wird. Da das Header-File sowohl in 'string\_manipulation\_par.c' als auch in 'string\_manipulation.c' importiert wird, würde es dadurch zu Problemen kommen. % TODO nochmal testen, war das wirklich der Grund?
+Diese globalen Variablen sind nicht im Header-File definiert, da Register nicht auf diese Weise deklariert werden können, sondern direkt definiert werden, also Speicher besetzt wird. Da das Header-File sowohl in 'string\_manipulation\_par.c' als auch in 'string\_manipulation.c' importiert wird, würde es dadurch zu Problemen kommen.
 
 Um vor den Berechnungen die richtigen Werte in diese Register zu kommen wird dir 'init\_register()'-Funktion verwendet.
 
@@ -372,6 +373,8 @@ Die C Anwendung wird mit 'make' und 'gcc' gebaut. Relevant ist hier der Tag '-ma
 	rm string_manipulation_par.o string_manipulation.o string_manipulation_seq.o string_manipulation
 \end{lstlisting}
 
+\subsection{evaluation.py}\label{subsec:eval}
+
 
 \section{Auswertung}
 \subsection{Zeitkomplexität}
@@ -429,10 +432,10 @@ Es ist deutlich zu sehen, dass die se­quen­ti­elle Ausführung in für jede S
 	& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\
 	\hline
 	%\input{tabulars/lower_tab.txt} does some weird stuff and I was unable to figure out why
-	10000 & 13812.89 & 2438.83 & 229699.60 & 75923.16 \\
-	100000 & 74628.35 & 37815.71 & 791077.37 & 701784.15 \\
-	1000000 & 781054.95 & 301556.31 & 7308699.36 & 3514745.39 \\
-	100000000 & 56888725.52 & 5992509.42 & 458731319.02 & 61956346.45 \\
+	10000 & 3927.74 & 136.28 & 22713.70 & 853.06 \\
+	100000 & 38037.63 & 1796.03 & 225913.24 & 1528.48 \\
+	1000000 & 376818.89 & 1996.34 & 2262666.73 & 15791.38 \\
+	100000000 & 37738184.27 & 82337.04 & 239258933.07 & 14075870.69 \\
 	\hline
 \end{tabular}
 \label{Tab:uppertab}
@@ -449,10 +452,10 @@ Es ist deutlich zu sehen, dass die sequentielle Ausführung in für jede Stringl
 	& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\
 	\hline
 	%\input{tabulars/upper_tab.txt} does some weird stuff and I was unable to figure out why
-	10000 & 13718.13 & 2732.00 & 311293.96 & 435716.85 \\
-	100000 & 70663.97 & 33116.91 & 868215.45 & 790953.91 \\
-	1000000 & 776718.16 & 328559.81 & 8446686.96 & 4419921.43 \\
-	100000000 & 73948537.61 & 9256554.24 & 521830060.76 & 58353286.64 \\
+	10000 & 3971.14 & 458.73 & 23990.09 & 474.48 \\
+	100000 & 37695.94 & 294.53 & 239811.23 & 1545.62 \\
+	1000000 & 378483.88 & 9016.46 & 2401516.14 & 29803.12 \\
+	100000000 & 37753168.08 & 122854.37 & 247914893.18 & 10307739.59 \\
 	\hline
 \end{tabular}
 \label{Tab:lowertab}
@@ -468,10 +471,10 @@ Es ist zu sehen, dass die sequentielle Ausführung in für jede Stringlänge meh
 	& Mittelwert & Standardabweichung  & Mittelwert & Standardabweichung \\
 	\hline
 	%\input{tabulars/count_tab.txt} does some weird stuff and I was unable to figure out why
-	10000 & 46062.37 & 5738.73 & 53350.61 & 6362.82 \\
-	100000 & 269818.84 & 106161.31 & 322522.16 & 122342.74 \\
-	1000000 & 2617943.71 & 559510.81 & 3132603.61 & 554707.70 \\
-	100000000 & 206280004.77 & 15598865.64 & 244304383.10 & 12724125.35 \\
+	10000 & 15524.42 & 374.14 & 10018.55 & 724.44 \\
+	100000 & 154677.94 & 1582.74 & 100867.41 & 6679.76 \\
+	1000000 & 1545701.48 & 6479.76 & 1074906.42 & 297715.72 \\
+	100000000 & 154723840.88 & 219245.90 & 163612321.04 & 68948873.63 \\
 	\hline
 \end{tabular}
 \label{Tab:counttab}
