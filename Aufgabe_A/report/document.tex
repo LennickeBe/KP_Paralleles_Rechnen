@@ -374,6 +374,37 @@ Die C Anwendung wird mit 'make' und 'gcc' gebaut. Relevant ist hier der Tag '-ma
 \end{lstlisting}
 
 \subsection{evaluation.py}\label{subsec:eval}
+Im Evaluierungsskript werden zunächst die csvs aus der Messung eingelesen.
+Anschließend werden die Daten in 3 Ergebnissen aufbereitet: Dateien mit Tabellen (zum Kopieren in den Report), Diagramme für die Zeitkomplexität und Diagramme zum Vergleichen der Laufzeiten.
+
+\begin{lstlisting}[language=python, numbers=left]
+def main():
+	df_10k = pd.read_csv("./data/string_times_10000.csv")
+	df_100k = pd.read_csv("./data/string_times_100000.csv")
+	df_1M = pd.read_csv("./data/string_times_1000000.csv")
+	df_100M = pd.read_csv("./data/string_times_100000000.csv")
+
+	create_tabulars(df_10k, df_100k, df_1M, df_100M)
+
+	if not os.path.isdir("../report/images"):
+		os.mkdir("../report/images")
+
+	complex_plots(df_10k, df_100k, df_1M, df_100M)
+
+	comparison_plots(df_10k, 10000)
+	comparison_plots(df_100k, 100000)
+	comparison_plots(df_1M, 1000000)
+	comparison_plots(df_100M, 100000000)
+\end{lstlisting}
+
+Mit 'create\_tabulars' wird für jede Funktion ('toUppercase', 'toLowercase', 'countChar') eine Tabelle erstellt. Dabei wird für die einzelnen Stringlängen jeweils eine Zeile geschrieben, welche den Mittelwert und die Standardabweichung für den parallelen und sequentiellen Ansatz beinhaltet.
+
+'complex\_plots' erstellt 3 Diagramme jeweils für jede Funktion, die gemessen wurde. Im Diagramm werden die Mittelwerte für parallel/sequentiell über den Stringlängen dargestellt. Dadurch wird das Laufzeitverhalten in Abhängigkeit von der Stringlänge gezeigt d.h. die Zeitkomplexität.
+
+Die 'comparion\_plots' erstellt für jede Funktion und jeweils jede Stringlänge ein Diagramm d.h. 12 Diagramme.
+Hier werden einfach die Laufzeiten für jede Messung dargestellt.
+
+Die Funktionen an sich sind nicht besonders interessant, da es primär plot-shenanigans ist.
 
 
 \section{Auswertung}
@@ -463,6 +494,8 @@ Es ist deutlich zu sehen, dass die sequentielle Ausführung in für jede Stringl
 \subsubsection{countChar}
 In der Tabelle \ref{Tab:counttab} sind die Zeitmessungen für die countChar() Funktionen zusammengefasst.
 Es ist zu sehen, dass die sequentielle Ausführung in für jede Stringlänge mehr Zeit benötigt als die Umsetzung mit SIMD. Hier ist der Unterschied allerdings nicht so deutlich wie bei den vorherigen Funktionen. Hier würde es sich lohnen nach einer effizienteren Lösung zu suchen als dem aktuellen Ansatz.
+
+Desweiteren ist die Standardabweichung auffällig hoch für den sequentiellen Ansatz bei einer Stringlänge von 100 Millionen. Deutlicher zu sehen in Abb. \ref{fig:count_comp_100M}.
 \newline
 \begin{tabular}{|c|r|l|r|l|}
 	\hline
@@ -483,6 +516,7 @@ Es ist zu sehen, dass die sequentielle Ausführung in für jede Stringlänge meh
 \subsection{Vergleich}
 In den folgenden Abbildungen sind 100 Laufzeiten für das Verarbeiten eines Strings aufgezeigt. Dabei sind pro Funktion 4 Abbildungen für je 10.000, 100.000, 1.000.000 und 100.000.000 Zeichen in den Strings. Die Diagramme veranschaulichen den Vergleich zwischen dem sequentiellen und parallelen Ansatz unter Verwendung von SIMD.
 \subsubsection{toUppercase}
+Alle Diagramme zeigen deutlich, dass der parallele Ansatz schneller ist für alle Stringlängen.
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_upper_10000.png}
@@ -510,47 +544,62 @@ In den folgenden Abbildungen sind 100 Laufzeiten für das Verarbeiten eines Stri
 
 \clearpage
 \subsubsection{toLowercase}
+
+Alle Diagramme zeigen deutlich, dass der parallele Ansatz schneller ist für alle Stringlängen.
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_lower_10000.png}
+		\caption{Durchführungszeiten von toLowercase für einen String mit 10.000 Zeichen.}
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_lower_100000.png}
+		\caption{Durchführungszeiten von toLowercase für einen String mit 100.000 Zeichen.}
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_lower_1000000.png}
+		\caption{Durchführungszeiten von toLowercase für einen String mit 1.000.000 Zeichen.}
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_lower_100000000.png}
+		\caption{Durchführungszeiten von toLowercase für einen String mit 100.000.000 Zeichen.}
 	\end{center}
 \end{figure}
 
 \clearpage
 \subsubsection{countChar}
+Die folgenden Diagramme zeigen jeweils 100 Laufzeiten für einen String mit unterschiedlicher Länge. Gemessen wird die Laufzeit um einen gegebenen Buchstaben ('c') im String zu zählen.
+
+Auch hier ist zu sehen, dass der parallele Ansatz schneller ist, außer bei Strings mit 100 Millionen Zeichen. In Abb. \ref{fig:count_comp_100M} ist ein sehr merkwürdiges Verhalten für die sequentielle Lösung zu sehen. Für den gleichen String scheint die Funktion entweder extrem schnell oder langsam zu sein. Da es der gleiche String ist, kann der Grund nicht sein, dass die Anzahl der Vorkommen von 'c' eine derartigen Unterschied erzeugen. Der Unterschied tritt auch erst mit der hohen Stringlänge auf. Damit sollte der Unterschied auch nicht durch etwaige sonstige Auslastung der Rechnungsnodes verursacht werden.
+Ich konnte das gleiche Verhalten bei meinem Laptop nicht beobachten und kann es auch nicht sicher erklären.
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_count_10000.png}
+		\caption{Durchführungszeiten von countChars für einen String mit 10.000 Zeichen.}
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_count_100000.png}
+		\caption{Durchführungszeiten von countChars für einen String mit 100.000 Zeichen.}
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_count_1000000.png}
+		\caption{Durchführungszeiten von countChars für einen String mit 1.000.000 Zeichen.}		
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
 		\includegraphics[width=0.65\textwidth]{images/comp_count_100000000.png}
+		\caption{Durchführungszeiten von countChars für einen String mit 100.000.000 Zeichen.}
+		\label{fig:count_comp_100M}
 	\end{center}
 \end{figure}
 

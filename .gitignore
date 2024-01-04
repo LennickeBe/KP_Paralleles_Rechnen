@@ -61,7 +61,7 @@ dkms.conf
 # own edit
 testing/
 template/
-*.png
-*.csv
+.png
+.csv
 *.swp
 .vscode
