@@ -39,7 +39,7 @@ int countChar(char* string, int len_string, char c)
 \subsection{string\_manipulation.c}
 Das Programm ist aufgeteilt in Dateien für den sequentiellen und parallelen Ansatz und einer 'main'-Datei, welche die Laufzeitmessungen für beide Umsetzungen durchführt. Die 'main'-Datei ist 'string\_manipulation.c'. Der Anfang der 'main'-Funktion darin ist im folgenden zu sehen.
 
-\label{code:main} % TODO is there a better way to do this?
+
 \begin{lstlisting}[language=c, numbers=left]
 	int main()
 	{
@@ -60,6 +60,7 @@ Das Programm ist aufgeteilt in Dateien für den sequentiellen und parallelen Ans
 		...
 	}
 \end{lstlisting}
+\label{code:main}
 
 Zunächst werden einige Register initialisiert (\ref{code:main} line 6), welche für die parallelen Berechnungen notwendig sind. Näheres dazu im Kapitel \ref{subsec:par}. Anschließend wird für die jeweiligen Stringlängen (10.000, 100.000,...) eine csv-Datei geöffnet (line 9) und die "measurement"-Funktion aufgerufen.
 
@@ -348,9 +349,23 @@ Dementsprechen sieht auch 'regCountChar' anders aus als beim Umwandeln.
 	}
 \end{lstlisting}
 
-Zunächst wird ein Register gefüllt mit den gesuchten Zeichen. Anschließend wird das Register des Eingabestrings damit verglichen. Der 8-Bit-Vergleich ergibt ein Register mit Einsen bei Gleichheit und Nullen sonst. Mit '\_\_mm256\_movemask\_epi8()' wird aus den ersten Bits der 8 Bit Blöcke eine Zahl gebildet. Die Einsen in der Binärdarstellung werden gezählt und das Ergebnis wird von 'regCountChar' zurückgegeben.
+Zunächst wird ein Register gefüllt mit den gesuchten Zeichen. Anschließend wird das Register des Eingabestrings damit verglichen. Der 8-Bit-Vergleich ergibt ein Register mit Einsen bei Gleichheit und Nullen sonst. Mit '\_\_mm256\_movemask\_epi8()' wird aus den ersten Bits der 8 Bit Blöcke eine Zahl gebildet (diese Funktion gewählt, da theoretisch schneller seien sollte als die '\_\_mm256\_extract..' Funktionen). Die Einsen in der Binärdarstellung werden gezählt in der Funktion 'bitCount' und das Ergebnis wird von 'regCountChar' zurückgegeben.
 
-% TODO zählen in Binärdarstellung
+Die bitCount Funktion habe ich so wie sie ist im Internet gefunden bei der Suche nach einer effizienten Möglichkeit aus dem extrahierten Integer die Anzahl der Einsen zu gewinnen.
+Dabei bin ich auf den 'MIT HAKMEM Count' \cite{hakmem_count} gestoßen. Hier ist die Bearbeitung in konstanter Zeit möglich und hat daher keinen entscheidenden Einfluss auf die Zeitkomplexität.
+
+\begin{lstlisting}[language=c, numbers=left]
+	int bitCount(unsigned int u)                         
+	{
+		unsigned int uCount;
+		uCount = u - ((u >> 1) & 033333333333) - ((u >> 2) & 011111111111);
+		return ((uCount + (uCount >> 3)) & 030707070707) % 63;
+	}
+\end{lstlisting}
+
+% TODO erklärung
+
+
 
 \subsection{Makefile}
 Die C Anwendung wird mit 'make' und 'gcc' gebaut. Relevant ist hier der Tag '-mavx2'. Dadurch werden die Instruktionen von AVX2 eingeschaltet, d.h. die Arbeit mit Vektorregistern ermöglicht.
@@ -602,5 +617,11 @@ Ich konnte das gleiche Verhalten bei meinem Laptop nicht beobachten und kann es 
 		\label{fig:count_comp_100M}
 	\end{center}
 \end{figure}
+
+\newpage
+\begin{thebibliography}{9}
+	\bibitem{hakmem_count}
+	Jeu George's Blog 'Parallel Counting'\newline \url{https://web.archive.org/web/20151229003112/http://blogs.msdn.com/b/jeuge/archive/2005/06/08/hakmem-bit-count.aspx}
+\end{thebibliography}
 
 \end{document}

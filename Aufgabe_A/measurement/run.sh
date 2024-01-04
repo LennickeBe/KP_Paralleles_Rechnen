@@ -11,4 +11,4 @@ module load GCCcore/10.3.0
 
 mkdir -p ../evaluation/data
 
-srun make clean; make all; ./string_manipulation
+srun -n 1 make clean; make all; ./string_manipulation
