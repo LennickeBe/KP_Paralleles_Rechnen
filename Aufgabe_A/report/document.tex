@@ -355,17 +355,87 @@ Die bitCount Funktion habe ich so wie sie ist im Internet gefunden bei der Suche
 Dabei bin ich auf den 'MIT HAKMEM Count' \cite{hakmem_count} gestoßen. Hier ist die Bearbeitung in konstanter Zeit möglich und hat daher keinen entscheidenden Einfluss auf die Zeitkomplexität.
 
 \begin{lstlisting}[language=c, numbers=left]
-	int bitCount(unsigned int u)                         
-	{
-		unsigned int uCount;
-		uCount = u - ((u >> 1) & 033333333333) - ((u >> 2) & 011111111111);
-		return ((uCount + (uCount >> 3)) & 030707070707) % 63;
-	}
+int bitCount(unsigned int u)                         
+{
+	unsigned int uCount;
+	uCount = u - ((u >> 1) & 033333333333) - ((u >> 2) & 011111111111);
+	return ((uCount + (uCount >> 3)) & 030707070707) % 63;
+}
 \end{lstlisting}
+\label{code:bitCount}
 
-% TODO erklärung
+Ich empfehle die Erklärung im verlinkten Blog-Eintrag \cite{hakmem_count}.
+Die Funktion basiert auf Bit-Shifts.
+Eine 32 bit Zahl n kann wie folgt dargestellt werden:
+\begin{math}
+	n = a_{31} * 2^{31} + a_{30} * 2^{30} + ... + a_0
+\end{math}\\
+Wobei 'bitCount' \begin{math}
+	a_{31} + a_{30} + ... + a_0
+\end{math} berechnen soll. 
+Der nächste Schritt ist demnach das Entfernen der Zweierpotenzen.
+\begin{align}
+	n &= a_{31} * 2^{31} + a_{30} * 2^{30} + ... + a_0 \\
+	n>>1 &= a_{31} * 2^{30} + a_{30} * 2^{29} + ... + a_1 \\
+	...\\
+	n>>31 &= a_{31} \\
+\end{align}
 
+Mit \begin{math}2^k - 2^{k-1}  = 2^{k-1}\end{math} folgt:\\
+\begin{align}
+		n - (n>>1) - (n>>2) - ... - (n>>31) = a_{31} + a_{30} + ... + a_0
+\end{align}
+Da z.B. für die Faktoren von \begin{math}
+	a_{31}
+\end{math} gilt damit
+\begin{align}
+	a_{31} * (2^{31} - 2^{30} - ... - 2^{0}) = a_{31}
+\end{align}.
 
+Das kann durch die Verwendung von Bit-Masken noch optimiert werden, da dadurch erst 3er Blöcke zusammengefasst und dann aufaddiert werden können. Damit wird die Bearbeitung weiter parallelisiert.
+
+In \ref{code:bitCount} in line 4 werden zunächst die Bits in 3er Blöcken (octal) gezählt. Die Ergebnisse werden dann in line 5 zusammengezählt.
+
+Zur Veranschaulichung seien die Zahlen erneut als Polynom dargestellt:
+\begin{alignat*}{6}
+	u = &a_0 * 2^0 + &a_1 * 2^1 + &a_2 *2^2 + &a_3 * 2^3 + &a_4 * 2^4 + &a_5 * 2^5\;...\\
+	u>>1 = &a_1 * 2^0 + &a_2 * 2^1 + &a_3 *2^2 + &a_4 * 2^3 + &a_5 * 2^4 + &a_6 * 2^5\;...\\
+	\&\;033333333333 = &a_1 * 2^0 + &a_2 * 2^1 + & &a_4 * 2^3 + &a_5 * 2^4 + &...\\
+	&&&&&&\\
+	u>>2 = &a_2 * 2^0 + &a_3 * 2^1 + &a_4 *2^2 + &a_5 * 2^3 + &a_6 * 2^4 + &a_7 * 2^5\;...\\
+	\&\;011111111111 = &a_2 * 2^0 + && &a_5 * 2^3 + &&...\\
+\end{alignat*}
+
+Damit ergibt sich in Kombination:
+\begin{align*}
+	u - ((u>>1) \& 033333333333) -((u >> 2) \& &011111111111) =\\
+	& a_0 * 2^0 + a_1 * (2^1 - 2^0) + a_2 * (2^2 - 2^1 - 2^0)\\
+	& a_3 * 2^3 + a_4 * (2^4 - 2^3) + a_5 * (2^5 - 2^4 - 2^3)\\
+	& ...\\
+	=\;&(a_0 + a_1 + a_2) * 2^0 + (a_3+a_4+a_5)*2^3 + ...\\
+\end{align*}
+
+Es sind also immer 3 Bits aufaddiert. Die Variable 'uCount' beinhaltet also die Information der "gezählten" Bits und muss anschließend in eine Integer zahl umgewandelt werden. Das passiert in Zeile 5, für welche eine ähnliche Visualisierung möglich ist:
+\begin{alignat*}{7}
+	uCount = &a_0 * 2^0 + &a_1 * 2^1 + &a_2 *2^2 + &a_3 * 2^3 + &a_4 * 2^4 + &a_5 * 2^5 &+ \;...\\
+	uCount>>3 = &a_3 * 2^0 + &a_4 * 2^1 + &a_5 *2^2 + &a_6 * 2^3 + &a_7 * 2^4 + &a_8 * 2^5 &+ \;...\\
+\end{alignat*}
+
+\begin{alignat*}{5}
+		uCount + (uCount>>3) =&(a_0 + a_3) * 2^0 +&(a_1+a_4) *2^1 +&(a_2+a_5)*2^2 +&(a_3+a_6)*2^3 +&\\
+		&(a_4 + a_7) * 2^4 +&(a_5+a_8) *2^5 +&(a_6+a_9)*2^6 +&(a_7+a_{10})*2^7 +&...\\
+		&&&&&\\
+		\&\;030707070707 = &(a_0 + a_3) * 2^0 +&(a_1+a_4) *2^1 +&(a_2+a_5)*2^2 +&&\\
+		&&&(a_6+a_9)*2^6 +&(a_7+a_{10})*2^7 +&...\\
+\end{alignat*}
+Der Term \begin{math}(a_6+a_9)*2^6\end{math} entspricht dem LSB vom 2. und 3. Block von uCount also eigentlich zu \begin{math}2^0\end{math}. Auch bei den folgenden Termen ist die 2er Potenz zu groß, sie sollte zwischen 0 und 2 liegen. Damit erklärt sich das modulo 63 am Ende.
+Also:
+\begin{align*}
+	((uCount + (uCount>>3))\&\;&030707070707)\%63\\
+	&(a_0 + a_3) * 2^0 +(a_1+a_4) *2^1 +(a_2+a_5)*2^2 +\\
+	&(a_6+a_9)*2^0 +(a_7+a_{10})*2^1 +...\\
+\end{align*}
+Somit werden von uCount jeweils die 3er Blöcke addiert. Da darin die Anzahl der 1-Bits in den 3er Blöcken vom Argument steht, ist das Endresultat die Summe aller Einsen im Argument.
 
 \subsection{Makefile}
 Die C Anwendung wird mit 'make' und 'gcc' gebaut. Relevant ist hier der Tag '-mavx2'. Dadurch werden die Instruktionen von AVX2 eingeschaltet, d.h. die Arbeit mit Vektorregistern ermöglicht.
@@ -592,27 +662,29 @@ Die folgenden Diagramme zeigen jeweils 100 Laufzeiten für einen String mit unte
 
 Auch hier ist zu sehen, dass der parallele Ansatz schneller ist, außer bei Strings mit 100 Millionen Zeichen. In Abb. \ref{fig:count_comp_100M} ist ein sehr merkwürdiges Verhalten für die sequentielle Lösung zu sehen. Für den gleichen String scheint die Funktion entweder extrem schnell oder langsam zu sein. Da es der gleiche String ist, kann der Grund nicht sein, dass die Anzahl der Vorkommen von 'c' eine derartigen Unterschied erzeugen. Der Unterschied tritt auch erst mit der hohen Stringlänge auf. Damit sollte der Unterschied auch nicht durch etwaige sonstige Auslastung der Rechnungsnodes verursacht werden.
 Ich konnte das gleiche Verhalten bei meinem Laptop nicht beobachten und kann es auch nicht sicher erklären.
+
 \begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=0.65\textwidth]{images/comp_count_10000.png}
+		\includegraphics[width=0.55\textwidth]{images/comp_count_10000.png}
 		\caption{Durchführungszeiten von countChars für einen String mit 10.000 Zeichen.}
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=0.65\textwidth]{images/comp_count_100000.png}
+		\includegraphics[width=0.55\textwidth]{images/comp_count_100000.png}
 		\caption{Durchführungszeiten von countChars für einen String mit 100.000 Zeichen.}
 	\end{center}
 \end{figure}
+\newpage
 \begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=0.65\textwidth]{images/comp_count_1000000.png}
+		\includegraphics[width=0.55\textwidth]{images/comp_count_1000000.png}
 		\caption{Durchführungszeiten von countChars für einen String mit 1.000.000 Zeichen.}		
 	\end{center}
 \end{figure}
 \begin{figure}[h]
 	\begin{center}
-		\includegraphics[width=0.65\textwidth]{images/comp_count_100000000.png}
+		\includegraphics[width=0.55\textwidth]{images/comp_count_100000000.png}
 		\caption{Durchführungszeiten von countChars für einen String mit 100.000.000 Zeichen.}
 		\label{fig:count_comp_100M}
 	\end{center}
