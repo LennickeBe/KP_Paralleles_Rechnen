@@ -216,6 +216,6 @@ void init_register() {
 	upper_up_limit = _mm256_set1_epi8('[');
 	// register with the 8-bit values '32'
 	register_of_32 = _mm256_set1_epi8(' ');
-	// reigster with the 8 bit values for 'c'
+	// register with the 8 bit values for 'c'
 	c_register = _mm256_set1_epi8('c');
 }
