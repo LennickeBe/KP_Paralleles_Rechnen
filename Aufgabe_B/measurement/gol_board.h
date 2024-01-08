@@ -22,4 +22,5 @@ board * init_board(int rows, int cols, int start_cells);
 void update_board(board *b);
 void update_board_threaded(board *b);
 board * create_board_copy(board *b);
+bool board_compare(board *b1, board *b2);
 #endif
