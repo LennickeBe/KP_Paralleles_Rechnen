@@ -88,11 +88,11 @@ int measure(FILE *file, char *string, int len_string)
 	// start with count as no reset necessary after
 // count
 	clock_gettime(CLOCK_MONOTONIC, &start);	
-	par_count = countCharPar(par_string, len_string, 'c');
+	par_count = countCharPar(par_string, len_string);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	fprintf(file, "%d,", time_diff_in_ns(start, end));	
 	clock_gettime(CLOCK_MONOTONIC, &start);	
-	seq_count = countCharSeq(seq_string, len_string, 'c');
+	seq_count = countCharSeq(seq_string, len_string);
 	clock_gettime(CLOCK_MONOTONIC, &end);
 	fprintf(file, "%d,", time_diff_in_ns(start, end));	
 	if (par_count != seq_count)

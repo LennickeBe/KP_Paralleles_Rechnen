@@ -3,6 +3,6 @@
 
 int toUppercaseSeq(char *string, int len_string);
 int toLowercaseSeq(char *string, int len_string);
-int countCharSeq(char *string, int len_string, char c);
+int countCharSeq(char *string, int len_string);
 
 #endif

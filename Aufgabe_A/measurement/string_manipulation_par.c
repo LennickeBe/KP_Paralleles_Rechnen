@@ -10,7 +10,7 @@ __m256i lower_low_limit;
 __m256i upper_up_limit;
 __m256i lower_up_limit;
 __m256i register_of_32;
-
+__m256i c_register;
 
 /*
  * Turn string in register "string" to uppercase
@@ -155,20 +155,19 @@ int bitCount(unsigned int u)
  * returns -1 if there has been an error, and the number of appearences if
  * there has been no error
  */
-int regCountChar(__m256i *string, char c)
+int regCountChar(__m256i *string)
 {
-	__m256i char_register = _mm256_set1_epi8(c);
-	return bitCount(_mm256_movemask_epi8(_mm256_cmpeq_epi8(*string, char_register)));
+	return bitCount(_mm256_movemask_epi8(_mm256_cmpeq_epi8(*string, c_register)));
 }
 
 
 /*
- * counts the appearences of a given character "c" in string "string" (with length
+ * counts the appearences of character "c" in string "string" (with length
  * len_string)
  * returns -1 if there has been an error, and the number of appearences if
  * there has been no error
  */
-int countCharPar(char *string, int len_string,  char c)
+int countCharPar(char *string, int len_string)
 {
 	int i, filler_size, count=0;
 	char *filler_string;
@@ -179,7 +178,7 @@ int countCharPar(char *string, int len_string,  char c)
 	for ( i=0; i<=len_string-32; i+=32)
 	{
 		xmm = _mm256_loadu_si256((__m256i*) string);
-		count += regCountChar(&xmm, c);
+		count += regCountChar(&xmm);
 		string+=32;
 	}
 
@@ -191,7 +190,7 @@ int countCharPar(char *string, int len_string,  char c)
 		// remaining chars into allocated 32 bytes memory
 		strncpy(filler_string, string, filler_size);
 		xmm = _mm256_loadu_si256((__m256i*) filler_string);
-		count += regCountChar(&xmm, c);
+		count += regCountChar(&xmm);
 
 		free(filler_string);
 	}
@@ -217,4 +216,6 @@ void init_register() {
 	upper_up_limit = _mm256_set1_epi8('[');
 	// register with the 8-bit values '32'
 	register_of_32 = _mm256_set1_epi8(' ');
+	// reigster with the 8 bit values for 'c'
+	c_register = _mm256_set1_epi8('c');
 }

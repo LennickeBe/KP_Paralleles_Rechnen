@@ -35,14 +35,15 @@ int toLowercaseSeq(char *string, int len_string)
 
 
 /*
- * counts the appearences of a given character "c" in string "string" (with length
+ * counts the appearences of character "c" in string "string" (with length
  * len_string)
  * returns -1 if there has been an error, and the number of appearences if
  * there has been no error
  */
-int countCharSeq(char *string, int len_string, char c)
+int countCharSeq(char *string, int len_string)
 {
 	int count = 0;
+	char c = 'c';
 	while(*string)
 	{
 		if (strncmp(string, &c, 1) == 0)
