@@ -74,4 +74,4 @@ python3 evaluation.py
 Die Resultate sind unter '<repo root directory>/Aufgabe_A/report/images' und  '<repo root directory>/Aufgabe_A/report/tabulars' zu finden.
 Die Bilder werden beim compilieren der tex-Datei direkt verwendet. Die Tabellen müssen vorher aus den jeweiligen Dateien in den Report kopiert werden. (ist bereits syntaktisch aufgearbeitet, aber ich habe ein automatisches einfügen nicht hinbekommen.  
 
-Eine Auswertung der Daten von einer Messung auf dem TU Dresden Cluster 'romeo' ist bereits unter '<repo root directory>/Aufgabe_A/report/report.pdf' zu finden.  
+Eine Auswertung der Daten von einer Messung auf dem TU Dresden Cluster 'romeo' ist bereits unter '<repo root directory>/Aufgabe_A/report/document.pdf' zu finden.  
