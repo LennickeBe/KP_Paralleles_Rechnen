@@ -102,7 +102,7 @@ def comparison_plot(strings: dict,
     plt.ylabel(strings["ylabel"])
     plt.xlabel(strings["xlabel"])
     plt.hlines(mean_par, series_par.index.values[0], series_par.index.values[-1], color=strings["color_par"], label="parallel mean")
-    plt.hlines(mean_seq, series_seq.index.values[0], series_seq.index.values[-1], color=strings["color_seq"], label="parallel mean")
+    plt.hlines(mean_seq, series_seq.index.values[0], series_seq.index.values[-1], color=strings["color_seq"], label="sequential mean")
     plt.scatter(series_par.index.values, series_par.values, color=strings["color_par"], label="parallel", marker=strings["marker_par"])
     plt.scatter(series_seq.index.values, series_seq.values, color=strings["color_seq"], label="sequential", marker=strings["marker_seq"])
     plt.legend()
