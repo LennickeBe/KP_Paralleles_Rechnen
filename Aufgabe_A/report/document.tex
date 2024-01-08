@@ -25,7 +25,7 @@ int toLowercase(char* string, int len_string)
 /* (with length len_string) */
 /* returns -1 if there has been an error, and the number of appearences*/
 /* if there has been no error */
-int countChar(char* string, int len_string, char c)
+int countChar(char* string, int len_string)
 \end{verbatim}
 \begin{itemize}
 	\item Beschreiben Sie für diese Funktionen die asymptotische Zeitkomplexität.
@@ -112,12 +112,12 @@ Es wird für se­quen­ti­ell und parallel jeweils ein String vorbereitet, dami
 		// start with count as no reset necessary after
 		// count
 		clock_gettime(CLOCK_MONOTONIC, &start);	
-		par_count = countCharPar(par_string, len_string, 'c');
+		par_count = countCharPar(par_string, len_string);
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		fprintf(file, "%d,", time_diff_in_ns(start, end));	
 		
 		clock_gettime(CLOCK_MONOTONIC, &start);	
-		seq_count = countCharSeq(seq_string, len_string, 'c');
+		seq_count = countCharSeq(seq_string, len_string);
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		fprintf(file, "%d,", time_diff_in_ns(start, end));	
 		if (par_count != seq_count)
@@ -265,10 +265,12 @@ Um vor den Berechnungen die richtigen Werte in diese Register zu kommen wird dir
 		upper_up_limit = _mm256_set1_epi8('[');
 		// register with the 8-bit values '32'
 		register_of_32 = _mm256_set1_epi8(' ');
+		// register with the 8 bit values for 'c'
+		c_register = _mm256_set1_epi8('c');
 	}
 \end{lstlisting}
 
-Um später Zeichen finden zu können, welche zu den Groß- bzw. Kleinbuchstaben gehören, sind für den Vergleich die Grenzen im Zahlenraum der ASCII Zeichen notwendig. Im Detail: Kleinbuchstaben gehen von 96-123 (in Zeichen '`' bis '\{') und Großbuchstaben von 64-91 ('@' bis '{[}').
+Um später Zeichen finden zu können, welche zu den Groß- bzw. Kleinbuchstaben gehören, sind für den Vergleich die Grenzen im Zahlenraum der ASCII Zeichen notwendig. Im Detail: Kleinbuchstaben gehen von 96-123 (in Zeichen '`' bis '\{') und Großbuchstaben von 64-91 ('@' bis '{[}'). Für diese Limits werden die ersten 4 Register gesetzt. Zwischen Klein- und zugehörigem Großbuchstaben ist in ASCII ein Abstand von 32. Um später 32 zu addieren/subtrahieren wird ein Register mit dem Wert 32 alle 8 Bit erstellt. Für das Zählen der Vorkommen von 'c' wird ein Vergleich benötigt. Dazu wird das letzte Register verwendet.
 
 Ein 'char' in C ist 8 Bits groß. Daher wird im gesamten Programm in den Registern mit 8Bit Bereichen gearbeitet.
 
@@ -337,19 +339,17 @@ Dieses Register wird anschließend 'und' verknüpft. Das daraus resultierende Re
 
 Die Umwandlung zu Uppercase funktioniert analog.
 
-
 Beim Zählen der Zeichen in einem String gibt es einige Unterschiede. Die Funktion, welche das einzelne Register verabreitet, gibt eine Zahl zurück. Diese Zahlen werden aufaddiert anstatt, dass das Register zurück in den String geschrieben wird.
 Dementsprechen sieht auch 'regCountChar' anders aus als beim Umwandeln. 
 
 \begin{lstlisting}[language=c, numbers=left]
-	int regCountChar(__m256i *string, char c)
+	int regCountChar(__m256i *string)
 	{
-		__m256i char_register = _mm256_set1_epi8(c);
-		return bitCount(_mm256_movemask_epi8(_mm256_cmpeq_epi8(*string, char_register)));
+		return bitCount(_mm256_movemask_epi8(_mm256_cmpeq_epi8(*string, c_register)));
 	}
 \end{lstlisting}
 
-Zunächst wird ein Register gefüllt mit den gesuchten Zeichen. Anschließend wird das Register des Eingabestrings damit verglichen. Der 8-Bit-Vergleich ergibt ein Register mit Einsen bei Gleichheit und Nullen sonst. Mit '\_\_mm256\_movemask\_epi8()' wird aus den ersten Bits der 8 Bit Blöcke eine Zahl gebildet (diese Funktion gewählt, da theoretisch schneller seien sollte als die '\_\_mm256\_extract..' Funktionen). Die Einsen in der Binärdarstellung werden gezählt in der Funktion 'bitCount' und das Ergebnis wird von 'regCountChar' zurückgegeben.
+Das Register des Eingabestrings wird mit dem 'c\_register' verglichen, sodass jeder Buchstabe im übergebenen Register mit 'c' verglichen wird. Der 8-Bit-Vergleich ergibt ein Register mit Einsen bei Gleichheit und Nullen sonst. Mit '\_\_mm256\_movemask\_epi8()' wird aus den ersten Bits der 8 Bit Blöcke eine Zahl gebildet (diese Funktion gewählt, da theoretisch schneller seien sollte als die '\_\_mm256\_extract..' Funktionen). Die Einsen in der Binärdarstellung werden gezählt in der Funktion 'bitCount' und das Ergebnis wird von 'regCountChar' zurückgegeben.
 
 Die bitCount Funktion habe ich so wie sie ist im Internet gefunden bei der Suche nach einer effizienten Möglichkeit aus dem extrahierten Integer die Anzahl der Einsen zu gewinnen.
 Dabei bin ich auf den 'MIT HAKMEM Count' \cite{hakmem_count} gestoßen. Hier ist die Bearbeitung in konstanter Zeit möglich und hat daher keinen entscheidenden Einfluss auf die Zeitkomplexität.
@@ -432,7 +432,7 @@ Der Term \begin{math}(a_6+a_9)*2^6\end{math} entspricht dem LSB vom 2. und 3. Bl
 Also:
 \begin{align*}
 	((uCount + (uCount>>3))\&\;&030707070707)\%63\\
-	&(a_0 + a_3) * 2^0 +(a_1+a_4) *2^1 +(a_2+a_5)*2^2 +\\
+	=&(a_0 + a_3) * 2^0 +(a_1+a_4) *2^1 +(a_2+a_5)*2^2 +\\
 	&(a_6+a_9)*2^0 +(a_7+a_{10})*2^1 +...\\
 \end{align*}
 Somit werden von uCount jeweils die 3er Blöcke addiert. Da darin die Anzahl der 1-Bits in den 3er Blöcken vom Argument steht, ist das Endresultat die Summe aller Einsen im Argument.
@@ -660,7 +660,9 @@ Alle Diagramme zeigen deutlich, dass der parallele Ansatz schneller ist für all
 \subsubsection{countChar}
 Die folgenden Diagramme zeigen jeweils 100 Laufzeiten für einen String mit unterschiedlicher Länge. Gemessen wird die Laufzeit um einen gegebenen Buchstaben ('c') im String zu zählen.
 
-Auch hier ist zu sehen, dass der parallele Ansatz schneller ist, außer bei Strings mit 100 Millionen Zeichen. In Abb. \ref{fig:count_comp_100M} ist ein sehr merkwürdiges Verhalten für die sequentielle Lösung zu sehen. Für den gleichen String scheint die Funktion entweder extrem schnell oder langsam zu sein. Da es der gleiche String ist, kann der Grund nicht sein, dass die Anzahl der Vorkommen von 'c' eine derartigen Unterschied erzeugen. Der Unterschied tritt auch erst mit der hohen Stringlänge auf. Damit sollte der Unterschied auch nicht durch etwaige sonstige Auslastung der Rechnungsnodes verursacht werden.
+Auch hier ist zu sehen, dass der parallele Ansatz deutlicher schneller ist. 
+
+In Abb. \ref{fig:count_comp_100M} ist ein sehr merkwürdiges Verhalten für die sequentielle Lösung zu sehen. Für den gleichen String scheint die Funktion entweder extrem schnell oder langsam zu sein. Da es der gleiche String ist, kann der Grund nicht sein, dass die Anzahl der Vorkommen von 'c' eine derartigen Unterschied erzeugen. Der Unterschied tritt auch erst mit der hohen Stringlänge auf, allerdings nicht bei 'lowercase' und 'uppercase' also sollte das Problem auch nicht in bei Speichermangel etc. liegen.
 Ich konnte das gleiche Verhalten bei meinem Laptop nicht beobachten und kann es auch nicht sicher erklären.
 
 \begin{figure}[h]
