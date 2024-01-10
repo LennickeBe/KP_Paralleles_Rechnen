@@ -95,14 +95,27 @@ def comparison_plot(strings: dict,
     Returns:
     """
     mean_par = np.mean(series_par)
+    std_par = np.std(series_par)
     mean_seq = np.mean(series_seq)
+    std_seq = np.std(series_seq)
 
     fig, ax = plt.subplots()
     plt.title(strings["title"]+f"{str_length} chars.", pad=20)
     plt.ylabel(strings["ylabel"])
     plt.xlabel(strings["xlabel"])
+    # means
     plt.hlines(mean_par, series_par.index.values[0], series_par.index.values[-1], color=strings["color_par"], label="parallel mean")
     plt.hlines(mean_seq, series_seq.index.values[0], series_seq.index.values[-1], color=strings["color_seq"], label="sequential mean")
+    # standard deviation / error
+    plt.hlines(mean_par+std_par, series_par.index.values[0], series_par.index.values[-1], color=strings["color_par"], alpha=0.6)
+    plt.hlines(mean_seq+std_seq, series_seq.index.values[0], series_seq.index.values[-1], color=strings["color_seq"], alpha=0.6)
+    plt.hlines(mean_par-std_par, series_par.index.values[0], series_par.index.values[-1], color=strings["color_par"], alpha=0.6)
+    plt.hlines(mean_seq-std_seq, series_seq.index.values[0], series_seq.index.values[-1], color=strings["color_seq"], alpha=0.6)
+    # box between
+
+ 
+
+    # values
     plt.scatter(series_par.index.values, series_par.values, color=strings["color_par"], label="parallel", marker=strings["marker_par"])
     plt.scatter(series_seq.index.values, series_seq.values, color=strings["color_seq"], label="sequential", marker=strings["marker_seq"])
     plt.legend()
