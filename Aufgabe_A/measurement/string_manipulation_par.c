@@ -11,6 +11,7 @@ __m256i upper_up_limit;
 __m256i lower_up_limit;
 __m256i register_of_32;
 __m256i c_register;
+__m256i one_register;
 
 /*
  * Turn string in register "string" to uppercase
@@ -155,9 +156,15 @@ int bitCount(unsigned int u)
  * returns -1 if there has been an error, and the number of appearences if
  * there has been no error
  */
-int regCountChar(__m256i *string)
+int _regCountChar(__m256i *string)
 {
 	return bitCount(_mm256_movemask_epi8(_mm256_cmpeq_epi8(*string, c_register)));
+}
+
+int regCountChar(__m256i *string)
+{
+	return (_mm256_or_si256(_mm256_cmpeq_epi8(*string, c_register),
+				one_register));
 }
 
 
@@ -167,7 +174,7 @@ int regCountChar(__m256i *string)
  * returns -1 if there has been an error, and the number of appearences if
  * there has been no error
  */
-int countCharPar(char *string, int len_string)
+int _countCharPar(char *string, int len_string)
 {
 	int i, filler_size, count=0;
 	char *filler_string;
@@ -197,6 +204,70 @@ int countCharPar(char *string, int len_string)
 	return count;
 }
 
+int sum_up_epi16(__m256i counter)
+{
+	return 0;
+}
+
+void merge_epi8_to_epi16(__mm256i *16bit, __mm256i *8bit)
+{
+
+}
+
+int countCharPar(char *string, int len_string)
+{
+	int i, filler_size, count;
+	char *filler_string;
+	__m256i xmm, 8bit_counter, 16bit_counter, 32bit_counter;
+
+	8bit_counter = _mm256_setzero_si256();
+	16bit_counter = _mm256_setzero_si256();
+
+
+
+	// a register can hold 32 chars (8bit ints)
+	// so we work on 32 chars of the string at a time
+	for ( i=0; i<=len_string-32; i+=32)
+	{
+		xmm = _mm256_loadu_si256((__m256i*) string);
+		8bit_counter = _mm256_add_epi8(regCountChar(&xmm));
+
+		// after 255 32 steps the 8 bit could overflow
+		if !(i % 8160)
+		{
+			// after adding 2 8bit numbers (2 * 255) 128 times
+			// 16 bit might overflow next time 8bit overflows
+			if !(i % 1044480)
+			{
+				counter += sum_up_epi16(16bit_register);
+				16bit_register = _mm256_setzero_si256();
+			}
+			merge_epi8_to_epi16(16bit_counter, 8bit_counter);
+			8bit_counter = _m256_setzero_si256();
+		}
+
+
+		string+=32;
+	}
+
+	// to avoid naughty memory access last chars treated different
+	filler_size = len_string % 32;
+	if (filler_size != 0)
+	{
+		filler_string = (char*) malloc(32*sizeof(char));
+		// remaining chars into allocated 32 bytes memory
+		strncpy(filler_string, string, filler_size);
+		xmm = _mm256_loadu_si256((__m256i*) filler_string);
+		8bit_counter = _mm256_add_epi8(regCountChar(&xmm));
+
+		free(filler_string);
+	}
+
+	return count;
+}
+
+
+
 
 /*
  * the register are used with the same content
@@ -218,4 +289,6 @@ void init_register() {
 	register_of_32 = _mm256_set1_epi8(' ');
 	// register with the 8 bit values for 'c'
 	c_register = _mm256_set1_epi8('c');
+	// register with the 8 bit values 1
+	one_register = _mm256_set1_epi8(1);
 }
