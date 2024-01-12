@@ -363,7 +363,7 @@ Die C Anwendung wird mit 'make' und 'gcc' gebaut. Relevant ist hier der Tag '-ma
 \end{lstlisting}
 
 \subsection{evaluation.py}\label{subsec:eval}
-Im Evaluierungsskript werden zunächst die csvs aus der Messung eingelesen.
+Im Evaluierungsskript werden zunächst die csvs aus der Messung eingelesen. Hierfür wird die Bibliothek 'pandas' genutzt. Die daraus resultierenden 'pandas.DataFrames' werden im restlichen Programm als Variablen für die Messwerte verwendet.
 Anschließend werden die Daten in 3 Ergebnissen aufbereitet: Dateien mit Tabellen (zum Kopieren in den Report), Diagramme für die Zeitkomplexität und Diagramme zum Vergleichen der Laufzeiten.
 
 \begin{lstlisting}[language=python, numbers=left]
@@ -386,17 +386,14 @@ def main():
 	comparison_plots(df_100M, 100000000)
 \end{lstlisting}
 
-Mit 'create\_tabulars' wird für jede Funktion ('toUppercase', 'toLowercase', 'countChar') eine Tabelle erstellt. Dabei wird für die einzelnen Stringlängen jeweils eine Zeile geschrieben, welche den Mittelwert und die Standardabweichung für den parallelen und sequentiellen Ansatz beinhaltet.
+Mit 'create\_tabulars' wird für jede Funktion ('toUppercase', 'toLowercase', 'countChar') eine Tabelle erstellt. Dabei wird für die einzelnen Stringlängen jeweils eine Zeile geschrieben, welche den Mittelwert und die Standardabweichung für den parallelen und sequentiellen Ansatz beinhaltet. Die Werte hierfür werden mit den numpy Funktionen 'numpy.mean' und 'numpy.std' berechnet.
 
-'complex\_plots' erstellt 3 Diagramme jeweils für jede Funktion, die gemessen wurde. Im Diagramm werden die Mittelwerte für parallel/sequentiell über den Stringlängen dargestellt. Dadurch wird das Laufzeitverhalten in Abhängigkeit von der Stringlänge gezeigt d.h. die Zeitkomplexität.
+'complex\_plots' erstellt 3 Diagramme jeweils für jede Funktion, die gemessen wurde. Im Diagramm werden die Mittelwerte für parallel/sequentiell über den Stringlängen dargestellt mit den Standardabweichungen als Fehlerbalken. Dadurch wird das Laufzeitverhalten in Abhängigkeit von der Stringlänge gezeigt d.h. die Zeitkomplexität.
 
 Die 'comparion\_plots' erstellt für jede Funktion und jeweils jede Stringlänge ein Diagramm d.h. 12 Diagramme.
-Hier werden einfach die Laufzeiten für jede Messung dargestellt.
+Hier werden die Laufzeiten für jede Messung dargestellt, heißt die Laufzeiten über den Iterationen der Laufzeitmessung. Die Diagramme enthalten außerdem einen horizontale Linie auf Höhe der Mittelwerte und darum einen Bereich in der größe der Standardabweichung.
 
-Die Funktionen an sich sind nicht besonders interessant, da es primär plot-shenanigans ist.
-
-Relevant für die Reproduzierbarkeit sind hier die Versionen der verwendeten Bibliotheken und von Python selbst.
-Die drei verwendeten externen Tools sind numpy(1.24.1), pandas(2.0.0) und matplotlib(3.3.4). Die verwendete Python Version ist 3.9.5.
+Die Funktionen an sich sind nicht besonders interessant, da es primär plot-shenanigans ist. Für das Erstellen der Diagramme wird matplotlib (bzw. gezielt pyplot) verwendet.
 
 \section{Ausführung}
 \subsection{Hardware}
@@ -407,6 +404,10 @@ Die Messung für die Bearbeitung der Aufgaben sind auf dem CPU Cluster Romeo der
 \item 200 GB SSD Speicher \\
 \item Betriebssystem: Rocky Linux 8.7 \\
 \end{itemize}
+
+\subsection{Programm-Versionen}
+Relevant für die Reproduzierbarkeit sind die Versionen der verwendeten Bibliotheken und Programme.
+Die drei verwendeten externen Tools sind numpy(1.24.1), pandas(2.0.0) und matplotlib(3.3.4). Die verwendete Python Version ist 3.9.5.
 
 
 \section{Auswertung}
@@ -426,6 +427,7 @@ Damit hängt die Bearbeitungszeit davon ab wie viele 32-Charakter Blöcke existi
 Das beschriebene Zeitverhalten ist auch in den folgenden drei Grafiken zu erkennen.
 Hier wird die durchschnittlich benötigte Rechenzeit in Abhängigkeit von der Stringlänge gezeigt.
 Die logarithmischen Skalen wurden gewählt, weil sonst die Messpunkte von 10k, 100k und einer Million sehr dicht zusammen liegen im Vergleich zu 100 Millionen.
+Die eingezeichneten Fehlerbalken 
 
 
 \begin{figure}[h]
