@@ -2,6 +2,7 @@
 #include <string.h>	// string functions
 #include <stdlib.h>	// string generation (rand_r)
 #include <math.h>	// for "to the power of"
+#include <stdint.h>	// for 64bit integer
 
 #include "string_manipulation_par.h"
 
@@ -138,117 +139,75 @@ int toLowercasePar(char *string, int len_string)
 
 
 /*
- * https://web.archive.org/web/20151229003112/http://blogs.msdn.com/b/jeuge/archive/2005/06/08/hakmem-bit-count.aspx
- * counts the bits in a 32-bit integer "u" that are 1 in constant time and with
- * constant memory
+ * sums up the 64bit numbers in the given register
  */
-int bitCount(unsigned int u)                         
- {
-         unsigned int uCount;
-         uCount = u - ((u >> 1) & 033333333333) - ((u >> 2) & 011111111111);
-	 return ((uCount + (uCount >> 3)) & 030707070707) % 63;
- }
+int64_t sum_up_epi64(__m256i *counter)
+{
+	return (_mm256_extract_epi64(*counter, 0) +
+		_mm256_extract_epi64(*counter, 1) +
+		_mm256_extract_epi64(*counter, 2) +
+		_mm256_extract_epi64(*counter, 3));
+}
 
 
 /*
- * counts the appearences of a given character "c" in the string in the
- * register "string"
- * returns -1 if there has been an error, and the number of appearences if
- * there has been no error
+ * sums up 8bit Blocks in groups of 8 in the lower 16 bits of 64bit Blocks
+ * the resulting register is added to the given 64 bit register
  */
-int _regCountChar(__m256i *string)
+__m256i merge_epi8_to_epi64(__m256i *counter_epi64, __m256i *counter_epi8)
 {
-	return bitCount(_mm256_movemask_epi8(_mm256_cmpeq_epi8(*string, c_register)));
+	return _mm256_add_epi64(*counter_epi64, 
+			// this sums up 8bits into the lower 16bits of 64bit Blocks
+			_mm256_sad_epu8(*counter_epi8, _mm256_setzero_si256()));
 }
 
-int regCountChar(__m256i *string)
+
+__m256i regCountChar(__m256i *string)
 {
-	return (_mm256_or_si256(_mm256_cmpeq_epi8(*string, c_register),
+	return (_mm256_and_si256(_mm256_cmpeq_epi8(*string, c_register),
 				one_register));
 }
 
-
-/*
- * counts the appearences of character "c" in string "string" (with length
- * len_string)
- * returns -1 if there has been an error, and the number of appearences if
- * there has been no error
- */
-int _countCharPar(char *string, int len_string)
+int64_t countCharPar(char *string, int len_string)
 {
-	int i, filler_size, count=0;
+	int i, filler_size;
 	char *filler_string;
-	__m256i xmm;
+	__m256i xmm, counter_epi8, counter_epi64;
+
+	// in theory this function risks an overflow at the string length
+	// (2^64-1) * 4 = 73.786.976.294.838.206.460
+	// but the given len_string is an int which does not even go that far
+	// so we assume only strings <= 2,147,483,647 are possible
+
+	counter_epi8 = _mm256_setzero_si256();
+	counter_epi64 = _mm256_setzero_si256();
 
 	// a register can hold 32 chars (8bit ints)
 	// so we work on 32 chars of the string at a time
 	for ( i=0; i<=len_string-32; i+=32)
 	{
 		xmm = _mm256_loadu_si256((__m256i*) string);
-		count += regCountChar(&xmm);
-		string+=32;
-	}
+		counter_epi8 = _mm256_add_epi8(counter_epi8, regCountChar(&xmm));
 
-	// to avoid naughty memory access last chars treated different
-	filler_size = len_string % 32;
-	if (filler_size != 0)
-	{
-		filler_string = (char*) malloc(32*sizeof(char));
-		// remaining chars into allocated 32 bytes memory
-		strncpy(filler_string, string, filler_size);
-		xmm = _mm256_loadu_si256((__m256i*) filler_string);
-		count += regCountChar(&xmm);
-
-		free(filler_string);
-	}
-	return count;
-}
-
-int sum_up_epi16(__m256i counter)
-{
-	return 0;
-}
-
-void merge_epi8_to_epi16(__mm256i *16bit, __mm256i *8bit)
-{
-
-}
-
-int countCharPar(char *string, int len_string)
-{
-	int i, filler_size, count;
-	char *filler_string;
-	__m256i xmm, 8bit_counter, 16bit_counter, 32bit_counter;
-
-	8bit_counter = _mm256_setzero_si256();
-	16bit_counter = _mm256_setzero_si256();
-
-
-
-	// a register can hold 32 chars (8bit ints)
-	// so we work on 32 chars of the string at a time
-	for ( i=0; i<=len_string-32; i+=32)
-	{
-		xmm = _mm256_loadu_si256((__m256i*) string);
-		8bit_counter = _mm256_add_epi8(regCountChar(&xmm));
-
-		// after 255 32 steps the 8 bit could overflow
-		if !(i % 8160)
+		// after 255 * 32 = 8160 steps the 8 bit could overflow
+		if (!(i % 8160))
 		{
-			// after adding 2 8bit numbers (2 * 255) 128 times
-			// 16 bit might overflow next time 8bit overflows
-			if !(i % 1044480)
-			{
-				counter += sum_up_epi16(16bit_register);
-				16bit_register = _mm256_setzero_si256();
-			}
-			merge_epi8_to_epi16(16bit_counter, 8bit_counter);
-			8bit_counter = _m256_setzero_si256();
+			counter_epi64 = merge_epi8_to_epi64(&counter_epi64,
+							&counter_epi8);
+			counter_epi8 = _mm256_setzero_si256();
 		}
-
-
 		string+=32;
 	}
+
+	// even if loop is left the last <32 chars could create an overflow
+	if (!(i % 8160))
+	{
+		counter_epi64 = merge_epi8_to_epi64(&counter_epi64,
+						&counter_epi8);
+		counter_epi8 = _mm256_setzero_si256();
+	}
+
+
 
 	// to avoid naughty memory access last chars treated different
 	filler_size = len_string % 32;
@@ -258,12 +217,14 @@ int countCharPar(char *string, int len_string)
 		// remaining chars into allocated 32 bytes memory
 		strncpy(filler_string, string, filler_size);
 		xmm = _mm256_loadu_si256((__m256i*) filler_string);
-		8bit_counter = _mm256_add_epi8(regCountChar(&xmm));
+		counter_epi8 = _mm256_add_epi8(counter_epi8, regCountChar(&xmm));
 
 		free(filler_string);
 	}
-
-	return count;
+	
+	// add remaining results
+	counter_epi64 = merge_epi8_to_epi64(&counter_epi64, &counter_epi8);
+	return sum_up_epi64(&counter_epi64);
 }
 
 
