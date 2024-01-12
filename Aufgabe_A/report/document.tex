@@ -339,103 +339,7 @@ Dieses Register wird anschließend 'und' verknüpft. Das daraus resultierende Re
 
 Die Umwandlung zu Uppercase funktioniert analog.
 
-Beim Zählen der Zeichen in einem String gibt es einige Unterschiede. Die Funktion, welche das einzelne Register verabreitet, gibt eine Zahl zurück. Diese Zahlen werden aufaddiert anstatt, dass das Register zurück in den String geschrieben wird.
-Dementsprechen sieht auch 'regCountChar' anders aus als beim Umwandeln. 
-
-\begin{lstlisting}[language=c, numbers=left]
-	int regCountChar(__m256i *string)
-	{
-		return bitCount(_mm256_movemask_epi8(_mm256_cmpeq_epi8(*string, c_register)));
-	}
-\end{lstlisting}
-
-Das Register des Eingabestrings wird mit dem 'c\_register' verglichen, sodass jeder Buchstabe im übergebenen Register mit 'c' verglichen wird. Der 8-Bit-Vergleich ergibt ein Register mit Einsen bei Gleichheit und Nullen sonst. Mit '\_\_mm256\_movemask\_epi8()' wird aus den ersten Bits der 8 Bit Blöcke eine Zahl gebildet (diese Funktion gewählt, da theoretisch schneller seien sollte als die '\_\_mm256\_extract..' Funktionen). Die Einsen in der Binärdarstellung werden gezählt in der Funktion 'bitCount' und das Ergebnis wird von 'regCountChar' zurückgegeben.
-
-Die bitCount Funktion habe ich so wie sie ist im Internet gefunden bei der Suche nach einer effizienten Möglichkeit aus dem extrahierten Integer die Anzahl der Einsen zu gewinnen.
-Dabei bin ich auf den 'MIT HAKMEM Count' \cite{hakmem_count} gestoßen. Hier ist die Bearbeitung in konstanter Zeit möglich und hat daher keinen entscheidenden Einfluss auf die Zeitkomplexität.
-
-\begin{lstlisting}[language=c, numbers=left]
-int bitCount(unsigned int u)                         
-{
-	unsigned int uCount;
-	uCount = u - ((u >> 1) & 033333333333) - ((u >> 2) & 011111111111);
-	return ((uCount + (uCount >> 3)) & 030707070707) % 63;
-}
-\end{lstlisting}
-\label{code:bitCount}
-
-Ich empfehle die Erklärung im verlinkten Blog-Eintrag \cite{hakmem_count}.
-Die Funktion basiert auf Bit-Shifts.
-Eine 32 bit Zahl n kann wie folgt dargestellt werden:
-\begin{math}
-	n = a_{31} * 2^{31} + a_{30} * 2^{30} + ... + a_0
-\end{math}\\
-Wobei 'bitCount' \begin{math}
-	a_{31} + a_{30} + ... + a_0
-\end{math} berechnen soll. 
-Der nächste Schritt ist demnach das Entfernen der Zweierpotenzen.
-\begin{align}
-	n &= a_{31} * 2^{31} + a_{30} * 2^{30} + ... + a_0 \\
-	n>>1 &= a_{31} * 2^{30} + a_{30} * 2^{29} + ... + a_1 \\
-	...\\
-	n>>31 &= a_{31} \\
-\end{align}
-
-Mit \begin{math}2^k - 2^{k-1}  = 2^{k-1}\end{math} folgt:\\
-\begin{align}
-		n - (n>>1) - (n>>2) - ... - (n>>31) = a_{31} + a_{30} + ... + a_0
-\end{align}
-Da z.B. für die Faktoren von \begin{math}
-	a_{31}
-\end{math} gilt damit
-\begin{align}
-	a_{31} * (2^{31} - 2^{30} - ... - 2^{0}) = a_{31}
-\end{align}.
-
-Das kann durch die Verwendung von Bit-Masken noch optimiert werden, da dadurch erst 3er Blöcke zusammengefasst und dann aufaddiert werden können. Damit wird die Bearbeitung weiter parallelisiert.
-
-In \ref{code:bitCount} in line 4 werden zunächst die Bits in 3er Blöcken (octal) gezählt. Die Ergebnisse werden dann in line 5 zusammengezählt.
-
-Zur Veranschaulichung seien die Zahlen erneut als Polynom dargestellt:
-\begin{alignat*}{6}
-	u = &a_0 * 2^0 + &a_1 * 2^1 + &a_2 *2^2 + &a_3 * 2^3 + &a_4 * 2^4 + &a_5 * 2^5\;...\\
-	u>>1 = &a_1 * 2^0 + &a_2 * 2^1 + &a_3 *2^2 + &a_4 * 2^3 + &a_5 * 2^4 + &a_6 * 2^5\;...\\
-	\&\;033333333333 = &a_1 * 2^0 + &a_2 * 2^1 + & &a_4 * 2^3 + &a_5 * 2^4 + &...\\
-	&&&&&&\\
-	u>>2 = &a_2 * 2^0 + &a_3 * 2^1 + &a_4 *2^2 + &a_5 * 2^3 + &a_6 * 2^4 + &a_7 * 2^5\;...\\
-	\&\;011111111111 = &a_2 * 2^0 + && &a_5 * 2^3 + &&...\\
-\end{alignat*}
-
-Damit ergibt sich in Kombination:
-\begin{align*}
-	u - ((u>>1) \& 033333333333) -((u >> 2) \& &011111111111) =\\
-	& a_0 * 2^0 + a_1 * (2^1 - 2^0) + a_2 * (2^2 - 2^1 - 2^0)\\
-	& a_3 * 2^3 + a_4 * (2^4 - 2^3) + a_5 * (2^5 - 2^4 - 2^3)\\
-	& ...\\
-	=\;&(a_0 + a_1 + a_2) * 2^0 + (a_3+a_4+a_5)*2^3 + ...\\
-\end{align*}
-
-Es sind also immer 3 Bits aufaddiert. Die Variable 'uCount' beinhaltet also die Information der 'gezählten' Bits und muss anschließend in eine Integer zahl umgewandelt werden. Das passiert in Zeile 5, für welche eine ähnliche Visualisierung möglich ist:
-\begin{alignat*}{7}
-	uCount = &a_0 * 2^0 + &a_1 * 2^1 + &a_2 *2^2 + &a_3 * 2^3 + &a_4 * 2^4 + &a_5 * 2^5 &+ \;...\\
-	uCount>>3 = &a_3 * 2^0 + &a_4 * 2^1 + &a_5 *2^2 + &a_6 * 2^3 + &a_7 * 2^4 + &a_8 * 2^5 &+ \;...\\
-\end{alignat*}
-
-\begin{alignat*}{5}
-		uCount + (uCount>>3) =&(a_0 + a_3) * 2^0 +&(a_1+a_4) *2^1 +&(a_2+a_5)*2^2 +&(a_3+a_6)*2^3 +&\\
-		&(a_4 + a_7) * 2^4 +&(a_5+a_8) *2^5 +&(a_6+a_9)*2^6 +&(a_7+a_{10})*2^7 +&...\\
-		&&&&&\\
-		\&\;030707070707 = &(a_0 + a_3) * 2^0 +&(a_1+a_4) *2^1 +&(a_2+a_5)*2^2 +&&\\
-		&&&(a_6+a_9)*2^6 +&(a_7+a_{10})*2^7 +&...\\
-\end{alignat*}
-Der Term \begin{math}(a_6+a_9)*2^6\end{math} entspricht dem LSB vom 2. und 3. Block von uCount also eigentlich zu \begin{math}2^0\end{math}. Auch bei den folgenden Termen ist die 2er Potenz zu groß, sie sollte zwischen 0 und 2 liegen. Damit erklärt sich das modulo 63 am Ende.
-Also:
-\begin{align*}
-	((uCount + (uCount>>3))\&\;&030707070707)\%63\\
-	=&(a_0 + a_3) * 2^0 +(a_1+a_4) *2^1 +(a_2+a_5)*2^2 +\\
-	&(a_6+a_9)*2^0 +(a_7+a_{10})*2^1 +...\\
-\end{align*}
-Somit werden von uCount jeweils die 3er Blöcke addiert. Da darin die Anzahl der 1-Bits in den 3er Blöcken vom Argument steht, ist das Endresultat die Summe aller Einsen im Argument.
+% TODO how does countCharPar work
 
 \subsection{Makefile}
 Die C Anwendung wird mit 'make' und 'gcc' gebaut. Relevant ist hier der Tag '-mavx2'. Dadurch werden die Instruktionen von AVX2 eingeschaltet, d.h. die Arbeit mit Vektorregistern ermöglicht.
@@ -490,6 +394,19 @@ Die 'comparion\_plots' erstellt für jede Funktion und jeweils jede Stringlänge
 Hier werden einfach die Laufzeiten für jede Messung dargestellt.
 
 Die Funktionen an sich sind nicht besonders interessant, da es primär plot-shenanigans ist.
+
+Relevant für die Reproduzierbarkeit sind hier die Versionen der verwendeten Bibliotheken und von Python selbst.
+Die drei verwendeten externen Tools sind numpy(1.24.1), pandas(2.0.0) und matplotlib(3.3.4). Die verwendete Python Version ist 3.9.5.
+
+\section{Ausführung}
+\subsection{Hardware}
+Die Messung für die Bearbeitung der Aufgaben sind auf dem CPU Cluster Romeo der TU Dresden ausgeführt worden. Dieser Cluster bietet 192 nodes mit jeweils \cite{hpc_compendium}:
+\begin{itemize}
+\item 2 x AMD EPYC CPU 7702 (64 cores) @ 2.0 GHz, Multithreading möglich \\
+\item 512 GB RAM \\
+\item 200 GB SSD Speicher \\
+\item Betriebssystem: Rocky Linux 8.7 \\
+\end{itemize}
 
 
 \section{Auswertung}
@@ -697,6 +614,10 @@ Ich konnte das gleiche Verhalten bei meinem Laptop nicht beobachten und kann es 
 \begin{thebibliography}{9}
 	\bibitem{hakmem_count}
 	Jeu George's Blog 'Parallel Counting'\newline \url{https://web.archive.org/web/20151229003112/http://blogs.msdn.com/b/jeuge/archive/2005/06/08/hakmem-bit-count.aspx}
+	
+	\bibitem{hpc_compendium}
+	HPC Compendium, 'HPC Resources', 12.01.2024
+	\url{https://doc.zih.tu-dresden.de/jobs_and_resources/hardware_overview/#romeo}
 \end{thebibliography}
 
 \end{document}
