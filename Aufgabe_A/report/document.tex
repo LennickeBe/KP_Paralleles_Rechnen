@@ -39,7 +39,7 @@ int countChar(char* string, int len_string)
 \subsection{string\_manipulation.c}
 Das Programm ist aufgeteilt in Dateien für den sequentiellen und parallelen Ansatz und einer 'main'-Datei, welche die Laufzeitmessungen für beide Umsetzungen durchführt. Die 'main'-Datei ist 'string\_manipulation.c'. Der Anfang der 'main'-Funktion darin ist im folgenden zu sehen.
 
-
+% TODO update if setbuf solution is fine
 \begin{lstlisting}[language=c, numbers=left]
 	int main()
 	{
@@ -131,7 +131,7 @@ Die erste Messung ist für die 'countChar' Funktion. Diese Funktion verändert d
 
 Für die Messung der Zeit wird mit der 'clock\_gettime'-Funktion aus der 'time.h' Bibliothek vor und nach dem Funktionsaufruf verwendet. Ich habe die clockid 'CLOCK\_MONOTONIC' gewählt, weil ich diese im Zusammenhang mit 'Laufzeitmessungen in C' am meisten gefunden habe und es funktioniert hat. Inhaltlich würden hier auch andere möglich seien.
 
-Der Unterschied zwischen den beiden Zeitstempeln in Nanosekunden wird dann in die übergebene Datei geschrieben, jeweils mit einem Komma dazu für das csv-Format.
+Der Unterschied zwischen den beiden Zeitstempeln in Nanosekunden wird dann in die übergebene Datei geschrieben, jeweils mit einem Komma für das csv-Format.
 
 Es wird zunächst die Laufzeit der 'countCharPar'-Funktion in line 3-6 gemessen und geschrieben; analog in line 8-11 für die Funktion 'countCharSeq'.
 
@@ -159,7 +159,7 @@ Anschließend werden die Ergebnisse verglichen und die Funktion bricht ab, wenn 
 		strncpy(par_string, string, len_string);
 \end{lstlisting}		
 
-Die Messung für die 'toUppercase' Funktionen verläuft analog zum Fall darüber. Allerdings werden hier die übergebenen Strings verändert. Damit die 'toLowercase' Funktionen nicht mit reinen Großbuchstaben-Strings arbeiten sondern ebenfalls mit dem in der 'measurement'-Funktion Bestimmten, werden 'seq\_string' und 'par\_string' zum Schluss  resettet.
+Die Messung für die 'toUppercase' Funktionen verläuft analog zum Fall darüber. Allerdings werden hier die übergebenen Strings verändert. Damit die 'toLowercase' Funktionen nicht mit reinen Großbuchstaben-Strings arbeiten sondern ebenfalls mit dem in der 'measurement'-Funktion bestimmten, werden 'seq\_string' und 'par\_string' zum Schluss  resettet.
 
 \begin{lstlisting}[language=c, numbers=left]		
 		// lowercase
@@ -246,6 +246,8 @@ Die parallele Umsetzung erfolgt mit SIMD dh. unter der Verwendung von Vektorregi
 	__m256i upper_up_limit;
 	__m256i lower_up_limit;
 	__m256i register_of_32;
+	__m256i c_register;
+	__m256i one_register;
 \end{lstlisting}
 
 Diese globalen Variablen sind nicht im Header-File definiert, da Register nicht auf diese Weise deklariert werden können, sondern direkt definiert werden, also Speicher besetzt wird. Da das Header-File sowohl in 'string\_manipulation\_par.c' als auch in 'string\_manipulation.c' importiert wird, würde es dadurch zu Problemen kommen.
@@ -267,12 +269,14 @@ Um vor den Berechnungen die richtigen Werte in diese Register zu kommen wird dir
 		register_of_32 = _mm256_set1_epi8(' ');
 		// register with the 8 bit values for 'c'
 		c_register = _mm256_set1_epi8('c');
+		// register with the 8 bit value 00000001
+		one_register = _m256_set1_epi8(1);
 	}
 \end{lstlisting}
 
-Um später Zeichen finden zu können, welche zu den Groß- bzw. Kleinbuchstaben gehören, sind für den Vergleich die Grenzen im Zahlenraum der ASCII Zeichen notwendig. Im Detail: Kleinbuchstaben gehen von 96-123 (in Zeichen '`' bis '\{') und Großbuchstaben von 64-91 ('@' bis '{[}'). Für diese Limits werden die ersten 4 Register gesetzt. Zwischen Klein- und zugehörigem Großbuchstaben ist in ASCII ein Abstand von 32. Um später 32 zu addieren/subtrahieren wird ein Register mit dem Wert 32 alle 8 Bit erstellt. Für das Zählen der Vorkommen von 'c' wird ein Vergleich benötigt. Dazu wird das letzte Register verwendet.
+Um später Zeichen finden zu können, welche zu den Groß- bzw. Kleinbuchstaben gehören, sind für den Vergleich die Grenzen im Zahlenraum der ASCII Zeichen notwendig. Im Detail: Kleinbuchstaben gehen von 96-123 (in Zeichen '`' bis '\{') und Großbuchstaben von 64-91 ('@' bis '{[}'). Für diese Limits werden die ersten 4 Register gesetzt. Zwischen Klein- und zugehörigem Großbuchstaben ist in ASCII ein Abstand von 32. Um später 32 zu addieren/subtrahieren wird ein Register mit dem Wert 32 alle 8 Bit erstellt. Für das Zählen der Vorkommen von 'c' wird ein Vergleich benötigt; diese Funktion wird das 'c\_register' erfüllen. Außerdem wird  eine Art Bitmaske 'one\_register' erstellt, um damit später die LSBs der 8Bit Blöcke eines anderen Registers auslesen zu können.
 
-Ein 'char' in C ist 8 Bits groß. Daher wird im gesamten Programm in den Registern mit 8Bit Bereichen gearbeitet.
+Ein 'char' in C ist 8 Bits groß. Daher wird fast im gesamten Programm in den Registern mit 8Bit Bereichen gearbeitet.
 
 Das Verarbeiten der Strings mit Vektorregistern teilt sich in 2 Schritte: Ein-/Auslesen des Strings in die Register und das Verarbeiten der einzelnen Register.
 
@@ -317,7 +321,7 @@ In line 9-15 wird der String in 32-Char Schritten durchgegangen, solange noch 32
 Anschließend werden die restlichen Zeichen bearbeitet (line 18-30). Der Grund für die Aufteilung ist, dass am Ende des Strings ansonsten die '\_\_m256\_loadu\_si256()'-Funktion auf unallokierten Speicher zugreift bzw. versucht zuzugreifen. Diese Funktion läd 256 Bit, auf die der Pointer '{*}string' im Argument zeigt, in ein Register.
 Dieses Register wird dann an die Funktion 'regToLowercase()' übergeben. Die 256 Bits am Ziel von '{*}string' werden mit '\_\_mm256\_store\_si256()' mit dem verarbeitetem Inhalt des Registers überschrieben.
 
-Für die restlichen Zeichen werden nochmal 32 Bytes allokiert. Ansonsten ist die Verarbeitung analog.
+Für die restlichen Zeichen werden nochmal 32 Bytes allokiert, damit beim Laden in das Register nicht auf unallokierten Speicher zugegriffen wird. Ansonsten ist die Verarbeitung analog.
 
 \begin{lstlisting}[language=c, numbers=left]
 	int regToLowercase(__m256i *string)
@@ -333,13 +337,122 @@ Für die restlichen Zeichen werden nochmal 32 Bytes allokiert. Ansonsten ist die
 	
 \end{lstlisting}
 
-Die 'regToLowercase' Funktion übernimmt einen Pointer auf ein Register. Jeweils 8 Bit große Bereiche werden verglichen mit den Grenzen für Großbuchstaben verglichen, sodass am Ende 'is\_lower\_char' Einsen hat wo die 8 Bit zu einem Großbuchstaben korrespondieren und Nullen wo nicht.
+Die 'regToLowercase' Funktion übernimmt einen Pointer auf ein Register. Jeweils 8 Bit große Bereiche werden mit den Grenzen für Großbuchstaben verglichen, sodass am Ende 'is\_lower\_char' Einsen beinhaltet in Bereichen, in denen die 8 Bit zu einem Großbuchstaben korrespondierten und ansonsten Nullen.
 
-Dieses Register wird anschließend 'und' verknüpft. Das daraus resultierende Register wird auf das übergebene Register mit String addiert in 8 Bit Blöcken (d.h. ersten 8 Bit auf die ersten 8 Bit usw.). Somit werden nur die 8 Bit Bereiche, welche einen Großbuchstaben beinhalten, um 32 erhöht. Das entspricht einer Umwandlung von Groß- zu Kleinbuchstaben.
+Dieses Register wird anschließend 'und' verknüpft mit dem 'register\_of\_32'. Das daraus resultierende Register hat den Wert 32 wo 'is\_lower\_char' nicht Null war und wird auf das übergebene Register mit String addiert (auch in 8 Bit Blöcken, d.h. ersten 8 Bit auf die ersten 8 Bit usw.). Somit werden nur die 8 Bit Bereiche, welche einen Großbuchstaben beinhalten, um 32 erhöht. Das entspricht einer Umwandlung von Groß- zu Kleinbuchstaben.
 
 Die Umwandlung zu Uppercase funktioniert analog.
 
-% TODO how does countCharPar work
+% TODO countChar
+Das Zählen von 'c' im gegebenen String unterscheidet sich von den anderen beiden Funktionen, da hier der String nicht verändert wird und eine Zahl zurückerwartet wird.
+
+\begin{lstlisting}[language=c, numbers=left]
+int64_t countCharPar(char *string, int len_string)
+{
+	int i, filler_size;
+	char *filler_string;
+	__m256i xmm, counter_epi8, counter_epi64;
+	
+	counter_epi8 = _mm256_setzero_si256();
+	counter_epi64 = _mm256_setzero_si256();
+	
+	// a register can hold 32 chars (8bit ints)
+	// so we work on 32 chars of the string at a time
+	for ( i=0; i<=len_string-32; i+=32)
+	{
+		xmm = _mm256_loadu_si256((__m256i*) string);
+		counter_epi8 = _mm256_add_epi8(counter_epi8,
+					regCountChar(&xmm));
+		
+		// after 255 * 32 = 8160 steps the 8 bit could overflow
+		if (!(i % 8160))
+		{
+			counter_epi64 = merge_epi8_to_epi64(&counter_epi64,
+			&counter_epi8);
+			counter_epi8 = _mm256_setzero_si256();
+		}
+		string+=32;
+	}
+	
+	// to avoid naughty memory access last chars treated different
+	filler_size = len_string % 32;
+	if (filler_size != 0)
+	{
+		filler_string = (char*) malloc(32*sizeof(char));
+		// remaining chars into allocated 32 bytes memory
+		strncpy(filler_string, string, filler_size);
+		xmm = _mm256_loadu_si256((__m256i*) filler_string);
+		counter_epi8 = _mm256_add_epi8(counter_epi8,
+					regCountChar(&xmm));
+		
+		free(filler_string);
+	}
+	
+	// add remaining results
+	counter_epi64 = merge_epi8_to_epi64(&counter_epi64, &counter_epi8);
+	return sum_up_epi64(&counter_epi64);
+}
+\end{lstlisting}
+\label{code:countCharPar}
+
+Der grobe Verlauf ist wie bei 'toLowerCasePar' und 'toUppercasePar': solange noch 32 Zeichen übrig sind, wird der String in 32-Zeichen-Schritten abgearbeitet und die letzten Zeichen separated in extra dafür allokiertem Speicher.
+
+Um erst ganz zum Schluss die Zahlen aus den Registern in einen Integer umwandeln zu müssen, und dadurch so lange wie möglich nur Vektoroperationen zu verwenden, werden zwei Register mehr benötigt: 'counter\_epi8' und 'counter\_epi64'. Ziel ist die Anzahl der vorkommenden 'c' in diesen Registern zu zählen und aus dem epi64 Register zum Schluss die Summe zu berechnen.
+Zunächst werden dafür in line 7-8 beide Register mit 0 gefüllt; auf Null gesetzt.
+
+Die Bearbeitung von 32 Zeichen beginnt ebenfalls damit, dass die Zeichen in ein Register geladen werden. Anschließend wird dieses Register an 'regCountChar' übergeben und das Ergebnis auf das aktuelle epi8 Zählregister addiert.
+
+\begin{lstlisting}[language=c, numbers=left]
+__m256i regCountChar(__m256i *string)
+{
+	return (_mm256_and_si256(_mm256_cmpeq_epi8(*string, c_register),
+		one_register));
+}
+\end{lstlisting}
+
+'regCountChar' führt einen Vergleich mit dem 'c\_register' durch und verwendet anschließend 'one\_register' als Bitmask, um die zusätzlichen durch den Vergleich entstehenden Einsen zu entfernen.
+
+Am Beispiel:\newline
+\begin{tabular}{cccccccc}
+	ASCII Werte: &115 &99 &104 &105 &99 &107 & ...\\
+	in Binär: &01110011 &01100011 &1101000 &01110011 &01100011 &01101011 & ...\\
+	Nach Vergleich: &00000000 &1111111 &00000000 &00000000 &1111111 &00000000 & ...\\
+	Bitmaske: &00000001 &00000001 &00000001 &00000001 &00000001 &00000001 & ...\\
+	Rückgabewert: &00000000 &00000001 &00000000 &00000000 &00000001 &00000000  & ... \\
+\end{tabular}
+\newline
+Durch das aufaddieren dieser Rückgabe werte wird also in den 8bit Bereichen gezählt wie oft in dem Bereich mit diesem Index 'c' gestanden hat.
+Hierbei entsteht ein Problem sobald ein 8Bit Bereich den Wert 255 erreicht. Würde nun erneut an dieser Stelle ein 'c' stehen käme es durch die Addition zu einem Overflow. Um das zu verhindern wird der aktuelle Zählstand alle 255 Schritte in das epi64 Zählregister übertragen und das epi8 Register zurückgesetzt. Das passiert in \ref{code:countCharPar} in line 18-24. Da i immer um 32 erhöht wird sind immer dann 255 Schritte erreicht, wenn i ganzzahlig durch 255*32=8160 teilen lässt.
+Das übertragen der Ergebnisse passiert in der Funktion 'merge\_epi8\_to\_epi64'.
+
+\begin{lstlisting}[language=c, numbers=left]
+__m256i merge_epi8_to_epi64(__m256i *counter_epi64, __m256i *counter_epi8)
+{
+	return _mm256_add_epi64(*counter_epi64, 
+	// this sums up 8bits into the lower 16bits of 64bit Blocks
+	_mm256_sad_epu8(*counter_epi8, _mm256_setzero_si256()));
+}
+\end{lstlisting}
+
+Die Idee ist, dass mehrere 8Bit Bereiche zusammengefasst werden. Dafür wird hier die Funktion '\_mm256\_sad\_epu8' verwendet. Diese Funktion ist eigentlich dazu da, um die absolute Differenz zwischen den 8Bit Blöcken der beiden gegebenen Register zu Berechnen und jeweils 8 davon horizontal zusammen zu addieren. Das Ergebnis wird dann in die niedrigsten 16Bit der 4 64Bit Blöcke eines 256 Bit Registers geschrieben. Als zweites Register wird ein Register mit nur Nullen verwendet, sodass die absolute Differenz immer der absolute Betrag der 8Bit Sektionen in epi8 Zählregister beträgt.
+Es werden also die ersten 8 8Bit Bereiche aufaddiert und in die Summe in die ersten 64Bit des Ergebnisregisters geschrieben. Die 2. 8 8Bit Bereiche in den 2. usw.
+Das Ergebnis dieser Berechnung wird auf das aktuelle epi64 Zählregister addiert, sodass in diesem gezählt werden kann bis die 64Bits nicht mehr aussreichen. Da 'countCharPar' mit einer 'int' Stringlänge arbeitet und nicht weiter arbeitet also diese, ist es nicht möglich, dass unser epi64 Register overflowed.
+
+Auf gleiche Art und Weise werden die restlichen Zeichen, welche kein volles Register füllen, bearbeitet.
+
+Zum Schluss bleibt ein epi64 Register mit 4 64Bit Bereichen, welche aufaddiert werden müssen für das finale Ergebnis.
+\begin{lstlisting}[language=c, numbers=left]
+	int64_t sum_up_epi64(__m256i *counter)
+	{
+		return (_mm256_extract_epi64(*counter, 0) +
+		_mm256_extract_epi64(*counter, 1) +
+		_mm256_extract_epi64(*counter, 2) +
+		_mm256_extract_epi64(*counter, 3));
+	}
+\end{lstlisting}
+Dazu wird mit '\_mm256\_extract\_epi64' jeder 64Bit Block separat ausgelesen und aufaddiert. Diese Funktion wird pro String nur einmal ausgeführt, daher fällt es nicht stark ins Gewicht, dass es eine 'sequentielle Addition' ist.
+
+
 
 \subsection{Makefile}
 Die C Anwendung wird mit 'make' und 'gcc' gebaut. Relevant ist hier der Tag '-mavx2'. Dadurch werden die Instruktionen von AVX2 eingeschaltet, d.h. die Arbeit mit Vektorregistern ermöglicht.
@@ -407,8 +520,16 @@ Die Messung für die Bearbeitung der Aufgaben sind auf dem CPU Cluster Romeo der
 
 \subsection{Programm-Versionen}
 Relevant für die Reproduzierbarkeit sind die Versionen der verwendeten Bibliotheken und Programme.
-Die drei verwendeten externen Tools sind numpy(1.24.1), pandas(2.0.0) und matplotlib(3.3.4). Die verwendete Python Version ist 3.9.5.
-
+\begin{itemize}
+	\item GNU Make 4.2.1
+	\item gcc (GCC) 10.3.0
+	\item Python 3.9.5
+	\begin{itemize}
+		\item numpy 1.24.1
+		\item pandas 2.0.0
+		\item matplotlib 3.3.4
+	\end{itemize}
+\end{itemize}
 
 \section{Auswertung}
 \subsection{Zeitkomplexität}
