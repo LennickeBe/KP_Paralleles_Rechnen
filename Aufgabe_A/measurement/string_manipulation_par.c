@@ -199,16 +199,6 @@ int64_t countCharPar(char *string, int len_string)
 		string+=32;
 	}
 
-	// even if loop is left the last <32 chars could create an overflow
-	if (!(i % 8160))
-	{
-		counter_epi64 = merge_epi8_to_epi64(&counter_epi64,
-						&counter_epi8);
-		counter_epi8 = _mm256_setzero_si256();
-	}
-
-
-
 	// to avoid naughty memory access last chars treated different
 	filler_size = len_string % 32;
 	if (filler_size != 0)
