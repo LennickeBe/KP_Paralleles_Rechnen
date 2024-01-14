@@ -34,7 +34,7 @@ void measure(size_t board_axis, int measurement_num, int iterations)
 	board *b, *b1;
 	struct timespec start, end;
 
-	b = init_board(200,200, 5000);//(board_axis*board_axis)/8 );
+	b = init_board(board_axis, board_axis,(board_axis*board_axis)/8 );
 	b1 = create_board_copy(b);
 
 	// parallel
@@ -47,13 +47,28 @@ void measure(size_t board_axis, int measurement_num, int iterations)
 			update_board_threaded(b1);
 		}
 		clock_gettime(CLOCK_MONOTONIC, &end);
-		printf("start: %lds %ldns\nend: %lds %ldns\n", start.tv_sec, start.tv_nsec, end.tv_sec, end.tv_nsec);
-		printf("\t = %2.4fs\n", get_time_diff_in_s(start, end));
+		//printf("start: %lds %ldns\nend: %lds %ldns\n", start.tv_sec, start.tv_nsec, end.tv_sec, end.tv_nsec);
+		//printf("\t = %2.4fs\n", get_time_diff_in_s(start, end));
 	}
+	printf("start: %lds %ldns\nend: %lds %ldns\n", start.tv_sec, start.tv_nsec, end.tv_sec, end.tv_nsec);
+	printf("\t = %2.4fs\n", get_time_diff_in_s(start, end));
+
 }
 
 
 void main ()
 {
-	visualize(128, 10);
+	//visualize(200, 10);
+	
+	//128x128
+	measure(128, 1, 1);
+	//512x512
+	measure(512, 1, 1);
+	//2048x2048
+	measure(2048, 1, 1);
+	//8192x8192
+	measure(8192, 1, 1);
+	//32768x32768
+	measure(32768, 1, 1);
+	
 }
