@@ -456,22 +456,22 @@ Dazu wird mit '\_mm256\_extract\_epi64' jeder 64Bit Block separat ausgelesen und
 
 \subsection{Makefile}
 Die C Anwendung wird mit 'make' und 'gcc' gebaut. Relevant ist hier der Tag '-mavx2'. Dadurch werden die Instruktionen von AVX2 eingeschaltet, d.h. die Arbeit mit Vektorregistern ermöglicht.
-\begin{lstlisting}[numbers=left]
-	all: string_manipulation
-	
-	string_manipulation_par.o: string_manipulation_par.c
+\begin{lstlisting}[numbers=left, basicstyle=\tiny]
+all: string_manipulation
+
+string_manipulation_par.o: string_manipulation_par.c
 	gcc -mavx2 -c string_manipulation_par.c
-	
-	string_manipulation_seq.o: string_manipulation_seq.c
+
+string_manipulation_seq.o: string_manipulation_seq.c
 	gcc -c string_manipulation_seq.c
-	
-	string_manipulation.o: string_manipulation.c
+
+string_manipulation.o: string_manipulation.c
 	gcc -mavx2 -c string_manipulation.c
-	
-	string_manipulation: string_manipulation.o string_manipulation_par.o string_manipulation_seq.o
+
+string_manipulation: string_manipulation.o string_manipulation_par.o string_manipulation_seq.o
 	gcc -mavx2 -o string_manipulation string_manipulation.o string_manipulation_seq.o string_manipulation_par.o
-	
-	clean:
+
+clean:
 	rm string_manipulation_par.o string_manipulation.o string_manipulation_seq.o string_manipulation
 \end{lstlisting}
 
@@ -512,10 +512,10 @@ Die Funktionen an sich sind nicht besonders interessant, da es primär plot-shen
 \subsection{Hardware}
 Die Messung für die Bearbeitung der Aufgaben sind auf dem CPU Cluster Romeo der TU Dresden ausgeführt worden. Dieser Cluster bietet 192 nodes mit jeweils \cite{hpc_compendium}:
 \begin{itemize}
-\item 2 x AMD EPYC CPU 7702 (64 cores) @ 2.0 GHz, Multithreading möglich \\
-\item 512 GB RAM \\
-\item 200 GB SSD Speicher \\
-\item Betriebssystem: Rocky Linux 8.7 \\
+\item 2 x AMD EPYC CPU 7702 (64 cores) @ 2.0 GHz, Multithreading möglich
+\item 512 GB RAM
+\item 200 GB SSD Speicher
+\item Betriebssystem: Rocky Linux 8.7
 \end{itemize}
 
 \subsection{Programm-Versionen}
@@ -530,6 +530,51 @@ Relevant für die Reproduzierbarkeit sind die Versionen der verwendeten Biblioth
 		\item matplotlib 3.3.4
 	\end{itemize}
 \end{itemize}
+
+\subsection{Messung}
+Die Messung wurde auf dem 'romeo' cluster der TU Dresden durchgeführt mit folgenden Schritten.
+Zunächst ein Login darauf notwendig.
+
+\begin{lstlisting}[language=bash]
+ssh <username>@login1.romeo.hpc.tu-dresden.de
+\end{lstlisting}
+
+Anschließend das Repository geklont:
+\begin{lstlisting}[language=bash]
+git clone https://github.com/LennickeBe/KP_Paralleles_Rechnen.git
+\end{lstlisting}
+
+Eine Messung wird mit dem sbatch script 'run.sh' im Repository unter 'Aufgabe\_A/measurement' gestartet.
+
+\begin{lstlisting}[language=bash]
+cd KP_Paralleles_Rechnen/Aufgabe_A/measurement
+sbatch run.sh
+\end{lstlisting}
+
+\subsection{Auswertung}
+Die Daten wurden durch ein python Programm ausgewertet mit folgendem Setup:
+\begin{lstlisting}[language=bash]
+module load release/23.04
+module load GCCcore/10.3.0
+module load Python/3.9.5
+cd ~/KP_Paralleles_Rechnen/Aufgabe_A/evaluation
+python3 -m venv .venv
+source .venv/bin/activate
+pip install numpy==1.24.1 pandas==2.0.0 matplotlib==3.3.4
+\end{lstlisting}
+
+Für eine lokale Auswertung muss das eigene Setup entsprechend angepasst werden, dass die Versionen eingehalten werden.
+
+Gestartet wurde die Auswertung dann mit:
+
+\begin{lstlisting}[language=bash]
+cd ~/KP_Paralleles_Rechnen/Aufgabe_A/evaluation
+source .venv/bin/activate
+python3 evaluation.py
+\end{lstlisting}
+
+Die Resultate sind unter '~/KP\_Paralleles\_Rechnen/Aufgabe\_A/report/images' und  '~/KP\_Paralleles\_Rechnen/Aufgabe\_A/report/tabulars' gespeichert worden.
+Die Bilder werden beim compilieren der tex-Datei direkt verwendet. Die Tabellen mussten vorher aus den jeweiligen Dateien in den Report kopiert werden. (ist bereits syntaktisch aufgearbeitet, aber ich habe ein automatisches einfügen nicht hinbekommen.)
 
 \section{Auswertung}
 \subsection{Zeitkomplexität}
