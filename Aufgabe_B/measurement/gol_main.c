@@ -12,39 +12,48 @@ float get_time_diff_in_s(struct timespec start, struct timespec end)
 }
 
 
-void measure(size_t board_axis, int iterations)
+void visualize(size_t board_axis, int iterations)
+{
+	board *b;
+	char buf[20];
+
+	b = init_board(board_axis, board_axis, (board_axis*board_axis)/8 );
+
+	for (int i = 0; i < iterations; i++)
+	{
+		snprintf(buf, 20, "pbms/foo%03d.pbm", i);
+		create_pbm(b, buf);
+		update_board_threaded(b);
+	}
+}
+
+
+void measure(size_t board_axis, int measurement_num, int iterations)
 {
 
 	board *b, *b1;
-	char buf[20];
 	struct timespec start, end;
 
 	b = init_board(200,200, 5000);//(board_axis*board_axis)/8 );
 	b1 = create_board_copy(b);
 
 	// parallel
-	create_pbm(b1, "pbms/foo.pbm");
-	for (int j = 0; j < 1; j++)
+	for (int j = 0; j < measurement_num; j++)
 	{
 		b1 = create_board_copy(b);
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		for (int i = 0; i < iterations; i++)
 		{
 			update_board_threaded(b1);
-			snprintf(buf, 20, "pbms/foo%03d.pbm", i);
-			create_pbm(b1, buf);
 		}
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		printf("start: %lds %ldns\nend: %lds %ldns\n", start.tv_sec, start.tv_nsec, end.tv_sec, end.tv_nsec);
 		printf("\t = %2.4fs\n", get_time_diff_in_s(start, end));
-		}
 	}
-
-
-
+}
 
 
 void main ()
 {
-	measure(128, 10);
+	visualize(128, 10);
 }
