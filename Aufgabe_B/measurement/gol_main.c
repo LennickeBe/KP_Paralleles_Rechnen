@@ -1,15 +1,10 @@
+#include "gol_main.h"
 #include "gol_board.h"
 #include "visualize.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-
-struct times {
-	struct timespec *starts;
-	struct timespec *ends;
-};
-
 
 
 float get_time_diff_in_s(struct timespec *start, struct timespec *end)
@@ -94,25 +89,36 @@ void measure(size_t board_axis,
 
 void main ()
 {
-	struct times times_128;
+	struct times times[4];
 	FILE *file;
 
 	//visualize(200, 10);
 	
 	//128x128
-	measure(128, 10, 10, &times_128);
+	measure(128, 1, 1, &times[0]);
 	//512x512
-	//measure(512, 1, 1);
+	measure(512, 1, 1, &times[1]);
 	//2048x2048
-	//measure(2048, 1, 1);
+	measure(2048, 1, 1, &times[2]);
 	//8192x8192
-	//measure(8192, 1, 1);
+	measure(8192, 1, 1, &times[3]);
 	//32768x32768
-	//measure(32768, 1, 1);	
+	measure(32768, 1, 1, &times[4]);	
 	
 	// write results
-	file = fopen("times.csv", "w");
-	write_times(file,10,  &times_128);
-
-	
+	file = fopen("times128.csv", "w");
+	write_times(file,1,  &times[0]);
+	fclose(file);
+	file = fopen("times512.csv", "w");
+	write_times(file,1,  &times[1]);
+	fclose(file);
+	file = fopen("times2048.csv", "w");
+	write_times(file,1,  &times[2]);
+	fclose(file);
+	file = fopen("times8192.csv", "w");
+	write_times(file,1,  &times[3]);
+	fclose(file);
+	file = fopen("times32769.csv", "w");
+	write_times(file,1,  &times[4]);
+	fclose(file);
 }
