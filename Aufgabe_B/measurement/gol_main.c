@@ -29,6 +29,8 @@ void write_times(FILE *file, int num, struct times *meas_times)
 		start += sizeof(struct timespec);
 		end += sizeof(struct timespec);
 	}
+	free(meas_times->starts);
+	free(meas_times->ends);
 }
 
 
@@ -80,6 +82,7 @@ void measure(size_t board_axis,
 			update_board_threaded(b1);
 		}
 		clock_gettime(CLOCK_MONOTONIC, end);
+
 		// move pointer in timespec areas
 		start += sizeof(struct timespec);
 		end += sizeof(struct timespec);
@@ -89,7 +92,7 @@ void measure(size_t board_axis,
 
 void main ()
 {
-	struct times times[4];
+	struct times times[5];
 	FILE *file;
 
 	//visualize(200, 10);
