@@ -11,4 +11,4 @@ module load GCCcore/10.3.0
 
 mkdir -p ../evaluation/data
 
-srun -n 1 make clean; make all; ./string_manipulation
+srun --cpu-freq=2000000 -n 1 make clean; make all; ./string_manipulation
