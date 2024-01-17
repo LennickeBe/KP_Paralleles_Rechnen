@@ -241,43 +241,51 @@ int main()
 	FILE *file;
 
 
-
 	init_register();
 
 	// 10000
-	file = fopen("../evaluation/data/string_times_10000.csv", "w");
 	if (measurement(&meas_times[0], iterations, 1000))
 	{
 		return 1;
 	}
-	write_times(file, &meas_times[0], iterations);
-	fclose(file);
-
-	return 0;
 	
 	// 100000
-	file = fopen("../evaluation/data/string_times_100000.csv", "w");
-	if (measurement(&meas_times[1], 100, 100000))
+	if (measurement(&meas_times[1], iterations, 100000))
 	{
 		return 1;
 	}
+
+	// 1000000
+	if (measurement(&meas_times[2], iterations, 1000000))
+	{
+		return 1;
+	}		
+
+	// 100000000
+	if (measurement(&meas_times[3], iterations, 100000000))
+	{
+		return 1;
+	}
+
+	// 10000
+	file = fopen("../evaluation/data/string_times_10000.csv", "w");
+	write_times(file, &meas_times[0], iterations);
+	fclose(file);
+	
+	// 100000
+	file = fopen("../evaluation/data/string_times_100000.csv", "w");
+	write_times(file, &meas_times[1], iterations);
 	fclose(file);
 
 	// 1000000
 	file = fopen("../evaluation/data/string_times_1000000.csv", "w");
-	if (measurement(&meas_times[2], 100, 1000000))
-	{
-		return 1;
-	}		
+	write_times(file, &meas_times[2], iterations);
 	fclose(file);
 
 	// 100000000
 	file = fopen("../evaluation/data/string_times_100000000.csv", "w");
-	if (measurement(&meas_times[3], 100, 100000000))
-	{
-		return 1;
-	}
+	write_times(file, &meas_times[3], iterations);
 	fclose(file);
-
+	
 	return 0;
 }
