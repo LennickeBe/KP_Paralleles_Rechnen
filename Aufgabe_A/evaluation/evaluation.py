@@ -55,7 +55,7 @@ def get_strings(key: str) -> dict:
                 "marker_seq":"s",
                 "filename":"../report/images/complex_count.png"
                 },
-            "complex_up": {"title": f"Mean processing time to uppercase strings of different length.",
+            "complex_up": {"title": f"Mean processing time to uppercase chars in strings of different length.",
                 "ylabel":"time in ns",
                 "xlabel":"string length",
                 "color_par":"green",
