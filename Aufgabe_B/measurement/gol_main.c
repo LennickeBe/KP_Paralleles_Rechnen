@@ -92,36 +92,36 @@ void measure(size_t board_axis,
 
 void main ()
 {
-	struct times times[5];
+	struct times meas_times[5];
 	FILE *file;
 
 	//visualize(200, 10);
 	
 	//128x128
-	measure(128, 1, 1, &times[0]);
+	measure(128, 1, 1, &meas_times[0]);
 	//512x512
-	measure(512, 1, 1, &times[1]);
+	measure(512, 1, 1, &meas_times[1]);
 	//2048x2048
-	measure(2048, 1, 1, &times[2]);
+	measure(2048, 1, 1, &meas_times[2]);
 	//8192x8192
-	measure(8192, 1, 1, &times[3]);
+	measure(8192, 1, 1, &meas_times[3]);
 	//32768x32768
-	measure(32768, 1, 1, &times[4]);	
+	measure(32768, 1, 1, &meas_times[4]);	
 	
 	// write results
 	file = fopen("times128.csv", "w");
-	write_times(file,1,  &times[0]);
+	write_times(file,1,  &meas_times[0]);
 	fclose(file);
 	file = fopen("times512.csv", "w");
-	write_times(file,1,  &times[1]);
+	write_times(file,1,  &meas_times[1]);
 	fclose(file);
 	file = fopen("times2048.csv", "w");
-	write_times(file,1,  &times[2]);
+	write_times(file,1,  &meas_times[2]);
 	fclose(file);
 	file = fopen("times8192.csv", "w");
-	write_times(file,1,  &times[3]);
+	write_times(file,1,  &meas_times[3]);
 	fclose(file);
 	file = fopen("times32769.csv", "w");
-	write_times(file,1,  &times[4]);
+	write_times(file,1,  &meas_times[4]);
 	fclose(file);
 }
