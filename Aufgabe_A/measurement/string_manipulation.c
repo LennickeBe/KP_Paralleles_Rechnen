@@ -200,8 +200,7 @@ int measurement(struct times *meas_times, int iterations, int len_string)
 {
 	char *string;
 	int i;
-	struct timespec *start, *end;
-	//struct timespec starts[2*3*iterations], ends[2*3*iterations];
+	
 	string = rand_string_alloc(len_string);
 	
 	// each measurement for seq+par, for count,up,low
