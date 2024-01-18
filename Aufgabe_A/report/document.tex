@@ -588,6 +588,29 @@ Hier werden die Laufzeiten für jede Messung dargestellt, heißt die Laufzeiten 
 
 Die Funktionen an sich sind nicht besonders interessant, da es primär plot-shenanigans ist. Für das Erstellen der Diagramme wird matplotlib (bzw. gezielt pyplot) verwendet.
 
+\subsection{sbatch Skript}
+
+\begin{lstlisting}[language=bash, numbers=left]
+#!/bin/bash
+
+#SBATCH --ntasks=1                 
+#SBATCH --time=00:10:00
+#SBATCH --account=p_lv_kp_wise2324
+#SBATCH --job-name=kp_pr_aufgabe_a
+#SBATCH --output=kp_pr_aufgabe_a_%j.out
+#SBATCH --error=kp_pr_aufgabe_a_%j.err
+	
+module load GCCcore/10.3.0
+
+mkdir -p ../evaluation/data
+	
+srun --cpu-freq=2000000 -n 1 make clean; make all; ./string_manipulation
+\end{lstlisting}
+
+Das sbatch Skript wird verwendet, um die Messung auf dem 'romeo' Cluster der TU Dresden auszuführen.
+In diesem Skript wird zunächst die gewünschte Kompilerversion geladen. Anschließend wird sichergestellt, dass der Pfad zu '../evaluation/data' existiert. Das c-Programm wird dort Dateien erstellen und ohne den Ordner führt das zu einem 'Segmentation Fault'.
+Die Messung selbst soll auf einer Rechennode laufen. Daher wird das Programm mit 'srun' gestartet. Der Tag '--cpu-freq=2000000' stellt dabei sicher, dass eine CPU mit 2GHz ausgewählt wird.
+
 \section{Ausführung}
 \subsection{Hardware}
 Die Messung für die Bearbeitung der Aufgaben sind auf dem CPU Cluster Romeo der TU Dresden ausgeführt worden. Dieser Cluster bietet 192 nodes mit jeweils \cite{hpc_compendium}:
