@@ -18,7 +18,10 @@ int time_diff_in_ns(struct timespec *start, struct timespec *end)
 		(end->tv_nsec - start->tv_nsec));
 }
 
-
+/*
+ * writes the measurement results in meas_times into the given file
+ * writes the header and 6 (end-start) differences per line in csv format
+ */
 void write_times(FILE *file, struct times *meas_times, int iterations)
 {
 	int i, j;
@@ -30,8 +33,10 @@ void write_times(FILE *file, struct times *meas_times, int iterations)
 	meas_times->start = *meas_times->starts;
 	meas_times->end = *meas_times->ends;
 
+	// write times for each measurement iteration
 	for (i = 0; i < iterations; i++)
 	{
+		// 6 values per iteration
 		for (j = 0; j < 5; j++)
 		{
 
@@ -39,7 +44,7 @@ void write_times(FILE *file, struct times *meas_times, int iterations)
 			meas_times->start++;
 			meas_times->end++;
 		}
-
+		// last number in line has newline instead of comma
 		fprintf(file, "%d\n", time_diff_in_ns(meas_times->start, meas_times->end));
 		meas_times->start++;
 		meas_times->end++;
@@ -101,7 +106,7 @@ char* rand_string_alloc(size_t size)
  * and measures how long it takes to run the functions
  *  toUpperPar, toUpperSeq, toLowerPar, toLowerSeq
  *  countCharPar, countCharSeq
- * and writes the times in ns in the given file in csv format
+ * and writes the times in the meas_times structure
  * returns 0 on success and 1 if a parallel and sequential
  * result does not add up
  */
@@ -121,9 +126,9 @@ int measure(struct times *meas_times, char *string, int len_string)
 	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
 	par_count = countCharPar(par_string, len_string);
 	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
+	// move pointer for the next measurement times
 	meas_times->start++;
 	meas_times->end++;
-
 
 	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
 	seq_count = countCharSeq(seq_string, len_string);
@@ -131,13 +136,11 @@ int measure(struct times *meas_times, char *string, int len_string)
 	meas_times->start++;
 	meas_times->end++;
 
-
 	if (par_count != seq_count)
 	{
 		fprintf(stderr, "Counting does not match up.\n");
 		return 1;
 	}
-
 
 // uppercase
 	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
@@ -146,15 +149,11 @@ int measure(struct times *meas_times, char *string, int len_string)
 	meas_times->start++;
 	meas_times->end++;
 
-
-
 	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
 	toUppercaseSeq(seq_string, len_string);
 	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
 	meas_times->start++;
 	meas_times->end++;
-
-
 
 	if (strcmp(par_string, seq_string))
 	{
@@ -166,7 +165,6 @@ int measure(struct times *meas_times, char *string, int len_string)
 	strncpy(seq_string, string, len_string);
 	strncpy(par_string, string, len_string);
 
-
 // lowercase
 	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
 	toLowercasePar(par_string, len_string);
@@ -174,14 +172,11 @@ int measure(struct times *meas_times, char *string, int len_string)
 	meas_times->start++;
 	meas_times->end++;
 
-
-
 	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
 	toLowercaseSeq(seq_string, len_string);
 	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
 	meas_times->start++;
 	meas_times->end++;
-
 
 	if (strcmp(par_string, seq_string))
 	{
@@ -198,7 +193,7 @@ int measure(struct times *meas_times, char *string, int len_string)
 /*
  * this functions calls the measure function "iterations" times
  * with a newly generated string of the lengt
- * it also writes the header for the csv file
+ * meas_times is structure for all measured times
  * returns 0 on success and 1 if measure returns 1
  */
 int measurement(struct times *meas_times, int iterations, int len_string)
