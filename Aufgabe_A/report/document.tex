@@ -39,21 +39,29 @@ int countChar(char* string, int len_string)
 \subsection{string\_manipulation.c}
 Das Programm ist aufgeteilt in Dateien für den sequentiellen und parallelen Ansatz und einer 'main'-Datei, welche die Laufzeitmessungen für beide Umsetzungen durchführt. Die 'main'-Datei ist 'string\_manipulation.c'. Der Anfang der 'main'-Funktion darin ist im folgenden zu sehen.
 
-% TODO update if setbuf solution is fine
 \begin{lstlisting}[language=c, numbers=left]
 	int main()
 	{
-		int len_string; 	
+		int len_string, iterations=100;
+		struct times meas_times[4];
 		FILE *file;
-		
+
+
 		init_register();
-		
+
 		// 10000
-		file = fopen("../evaluation/data/string_times_10000.csv", "w");
-		if (measurement(file, 100, 10000))
+		if (measurement(&meas_times[0], iterations, 1000))
 		{
 			return 1;
 		}
+
+		
+		// 100.000
+		...
+	
+		// 10000
+		file = fopen("../evaluation/data/string_times_10000.csv", "w");
+		write_times(file, &meas_times[0], iterations);
 		fclose(file);
 		
 		// 100.000
@@ -62,133 +70,205 @@ Das Programm ist aufgeteilt in Dateien für den sequentiellen und parallelen Ans
 \end{lstlisting}
 \label{code:main}
 
-Zunächst werden einige Register initialisiert (\ref{code:main} line 6), welche für die parallelen Berechnungen notwendig sind. Näheres dazu im Kapitel \ref{subsec:par}. Anschließend wird für die jeweiligen Stringlängen (10.000, 100.000,...) eine csv-Datei geöffnet (line 9) und die 'measurement'-Funktion aufgerufen.
-
+Zunächst werden einige Register initialisiert (\ref{code:main} line 8), welche für die parallelen Berechnungen notwendig sind. Näheres dazu im Kapitel \ref{subsec:par}. Anschließend wird für die jeweiligen Stringlängen (10.000, 100.000,...) eine Messung durchgeführt, wobei die Ergebnisse jeweils eine 'times' Struktur geschrieben wird.\newline
+Diese Struktur ist im Header File 'string\_manipulation.h' definiert:
 \begin{lstlisting}[language=c, numbers=left]
-	int measurement(FILE *file, int iterations, int len_string)
+	struct times {
+		struct timespec (*starts)[];
+		struct timespec (*ends)[];
+		struct timespec *start;
+		struct timespec *end;
+	};
+\end{lstlisting}\label{code:times}
+Die ersten beiden Pointer werden auf ein später allokiertes Array zeigen und die hinteren beiden Pointer werden verwendet um auf die einzelnen Elemente in diesem Array zu verweisen.
+
+Die main Funktion teilt sich in zwei Teile: den Aufrufen für die Messung und den Aufrufen zum Schreiben der Ergebnisse. Das Schreiben in die csvs wird danach gemacht, damit eventuell Schreibzyklen vom Betriebssystem nicht während einer Messung ausgeführt werden, was die Messergebnisse beeinflussen würde.
+
+\subsubsection{Messfunktionen}
+\begin{lstlisting}[language=c, numbers=left]
+int measurement(struct times *meas_times, int iterations, int len_string)
+{
+	char *string;
+	int i;
+
+	string = rand_string_alloc(len_string);
+	
+	// each measurement for seq+par, for count,up,low
+	// 2 * 3 * iterations timespecs
+	meas_times->starts = malloc(2 * 3 * iterations * sizeof(struct timespec));
+	meas_times->ends = malloc(2 * 3 * iterations * sizeof(struct timespec));
+	// pointer to work on those arrays
+	meas_times->start = *meas_times->starts;
+	meas_times->end = *meas_times->ends;
+	
+	for(i = 0; i < iterations; i++)
 	{
-		char *string;
-		int i;
-		string = rand_string_alloc(len_string);
-		fprintf(file,
-		"count_par,count_seq,upper_par,upper_seq,lower_par,lower_seq\n");
-		for(i = 0; i < iterations; i++)
+		if (measure(meas_times, string, len_string))
 		{
-			
-			if (measure(file, string, len_string))
-			{
-				return 1;
-			}
+			return 1;
 		}
-		free(string);
-		return 0;
 	}
 	
+	// reset worker arrays
+	meas_times->start = *meas_times->starts;
+	meas_times->end = *meas_times->ends;
+	
+	free(string);
+	return 0;
+}
 \end{lstlisting}
 
-In der 'measurement'-Funktion wird ein zufälliger String mit gegebener Länge wird erstellt.
-Das Ergebnis der Messung wird in Form einer csv-Datei festgehalten. Daher wird die Header-Zeile mit den Spaltennamen in die übergebene Datei geschrieben (line 6-7). Die Spaltenamen sind in der Reihenfolge der Messungen in der 'measure' Funktion.
+In der 'measurement'-Funktion wird ein zufälliger String mit gegebener Länge wird erstellt. Dafür wird in 'rand\_string\_alloc()' der Speicher allokiert, mit der 'rand()' Funktion aus 'math.h' werden Zahlen im humanreadable Bereich der ASCII Zahlen generiert und als Zeichen in den neuen Speicher geschrieben.\newline
+Das Ergebnis der Messung wird im übergebenen 'times' Objekt festgehalten. Die Struktur \ref{code:times} besteht nur aus Pointern, welche zu diesem Zeitpunkt lediglich deklariert sind. Für die tatsächlichen Messwerte wird Speicher allokiert und die Pointer 'start' und 'end' werden auf den Anfang der jeweiligen Arrays gesetzt. Der Speicher, welcher benötigt wird, ergibt sich aus der Menge der gemessenen Zeiten mal die Anzahl der Messiterationen. Pro Messung wird jede Funktion (counting, uppercasing, lowercasing) einmal sequentiell und einmal parallel gemessen.\newline
 Anschließend wird 'iterations'-mal mit dem gebildeten String die 'measure'-Funktion aufgerufen.
 
-Die 'measure'-Funktion führt für den gegebenen String die sequentiellen und parallelen Funktionen für 'toUppercase', 'toLowercase' und 'countChar' aus und schreibt die gemessenen Laufzeiten in die gegebene Datei im csv Format.
+Die 'measure'-Funktion führt für den gegebenen String die sequentiellen und parallelen Funktionen für 'toUppercase', 'toLowercase' und 'countChar' aus und schreibt die gemessenen Laufzeiten in das gegebene 'times' Objekt.
+
 \begin{lstlisting}[language=c, numbers=left]
-	int measure(FILE *file, char *string, int len_string)
-	{
-		int par_count, seq_count;
-		struct timespec start, end;
-		
-		// string gets changed so we work with duplicates to be able to reset
-		char *seq_string, *par_string;
-		seq_string = malloc(len_string * sizeof(char));
-		par_string = malloc(len_string * sizeof(char));
-		strncpy(seq_string, string, len_string);
-		strncpy(par_string, string, len_string);
+int measure(struct times *meas_times, char *string, int len_string)
+{
+	int par_count, seq_count;
+	
+	// string gets changed so we work with duplicates to be able to reset
+	char *seq_string, *par_string;
+	seq_string = malloc(len_string * sizeof(char));
+	par_string = malloc(len_string * sizeof(char));
+	strncpy(seq_string, string, len_string);
+	strncpy(par_string, string, len_string);
 \end{lstlisting}
 
 Da die jeweiligen Stringverarbeitungsfunktionen mit Pointern auf den String arbeiten und den gegebenen String inplace verarbeitet wird, wird in line 8-11 der String in neu-allokiertem Speicher kopiert.
 Es wird für se­quen­ti­ell und parallel jeweils ein String vorbereitet, damit die Ergebnisse der Funktionen vergleicht werden können, um die Korrektheit der Ansatze zu versichern.
 
-\begin{lstlisting}[language=c, numbers=left]		
-		// start with count as no reset necessary after
-		// count
-		clock_gettime(CLOCK_MONOTONIC, &start);	
-		par_count = countCharPar(par_string, len_string);
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		fprintf(file, "%d,", time_diff_in_ns(start, end));	
+\begin{lstlisting}[language=c, numbers=left]
+	// start with count as no reset necessary after
+	// count
+	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
+	par_count = countCharPar(par_string, len_string);
+	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
+	// move pointer for the next measurement times
+	meas_times->start++;
+	meas_times->end++;
+	
+	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
+	seq_count = countCharSeq(seq_string, len_string);
+	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
+	meas_times->start++;
+	meas_times->end++;
 		
-		clock_gettime(CLOCK_MONOTONIC, &start);	
-		seq_count = countCharSeq(seq_string, len_string);
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		fprintf(file, "%d,", time_diff_in_ns(start, end));	
-		if (par_count != seq_count)
-		{
-			fprintf(stderr, "Counting does not match up.\n");
-			return 1;
-		}
+	if (par_count != seq_count)
+	{
+		fprintf(stderr, "Counting does not match up.\n");
+		return 1;
+	}
 \end{lstlisting}
 
-Die erste Messung ist für die 'countChar' Funktion. Diese Funktion verändert den übergebenen String nicht, daher können 'seq\_string' und 'par\_string' für die Messung danach nochmal verwendet werden. Die Zähl-Messung zu Beginn spart daher einmal das erneuern der Strings.
+Die erste Messung ist für die 'countChar' Funktion. Diese Funktion verändert den übergebenen String nicht, daher können 'seq\_string' und 'par\_string' für die Messung danach nochmal verwendet werden. Die Zähl-Messung zu Beginn spart daher einmal das Erneuern der Strings.
 
 Für die Messung der Zeit wird mit der 'clock\_gettime'-Funktion aus der 'time.h' Bibliothek vor und nach dem Funktionsaufruf verwendet. Ich habe die clockid 'CLOCK\_MONOTONIC' gewählt, weil ich diese im Zusammenhang mit 'Laufzeitmessungen in C' am meisten gefunden habe und es funktioniert hat. Inhaltlich würden hier auch andere möglich seien.
 
-Der Unterschied zwischen den beiden Zeitstempeln in Nanosekunden wird dann in die übergebene Datei geschrieben, jeweils mit einem Komma für das csv-Format.
+Die ermittelten Zeitstempel (timespecs) werden in die timespec arrays der übergebenen 'times' Struktur geschrieben. Hierbei werden der 'start'/'end' Pointer des Objektes benutzt, um die richtige Stelle zu wählen. D.h. nach dem Eintragen der Messergebnisse werden die Pointer um 1 erhöht, um für die nächsten Ergebnisse auf das richtige Element zu zeigen.
 
 Es wird zunächst die Laufzeit der 'countCharPar'-Funktion in line 3-6 gemessen und geschrieben; analog in line 8-11 für die Funktion 'countCharSeq'.
 
 Anschließend werden die Ergebnisse verglichen und die Funktion bricht ab, wenn beide Ansätze nicht zum gleichen Ergebnis gekommen sind.
+
+\begin{lstlisting}[language=c, numbers=left]
+	// uppercase
+	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
+	toUppercasePar(par_string, len_string);
+	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
+	meas_times->start++;
+	meas_times->end++;
 		
-\begin{lstlisting}[language=c, numbers=left]		
-		// uppercase
-		clock_gettime(CLOCK_MONOTONIC, &start);	
-		toUppercasePar(par_string, len_string);
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		fprintf(file, "%d,", time_diff_in_ns(start, end));	
+	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
+	toUppercaseSeq(seq_string, len_string);
+	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
+	meas_times->start++;
+	meas_times->end++;
 		
-		clock_gettime(CLOCK_MONOTONIC, &start);	
-		toUppercaseSeq(seq_string, len_string);
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		fprintf(file, "%d,", time_diff_in_ns(start, end));	
-		if (strcmp(par_string, seq_string))
-		{
-			fprintf(stderr, "toUppercase does not match up.\n");
-			return 1;
-		}
+	if (strcmp(par_string, seq_string))
+	{
+		fprintf(stderr, "toUppercase does not match up.\n");
+		return 1;
+	}
 		
-		// reset
-		strncpy(seq_string, string, len_string);
-		strncpy(par_string, string, len_string);
-\end{lstlisting}		
+	// reset
+	strncpy(seq_string, string, len_string);
+	strncpy(par_string, string, len_string);
+\end{lstlisting}
 
 Die Messung für die 'toUppercase' Funktionen verläuft analog zum Fall darüber. Allerdings werden hier die übergebenen Strings verändert. Damit die 'toLowercase' Funktionen nicht mit reinen Großbuchstaben-Strings arbeiten sondern ebenfalls mit dem in der 'measurement'-Funktion bestimmten, werden 'seq\_string' und 'par\_string' zum Schluss  resettet.
 
-\begin{lstlisting}[language=c, numbers=left]		
-		// lowercase
-		clock_gettime(CLOCK_MONOTONIC, &start);	
-		toLowercasePar(par_string, len_string);
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		fprintf(file, "%d,", time_diff_in_ns(start, end));	
+\begin{lstlisting}[language=c, numbers=left]
+	// lowercase
+	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
+	toLowercasePar(par_string, len_string);
+	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
+	meas_times->start++;
+	meas_times->end++;
 		
-		clock_gettime(CLOCK_MONOTONIC, &start);	
-		toLowercaseSeq(seq_string, len_string);
-		clock_gettime(CLOCK_MONOTONIC, &end);
-		fprintf(file, "%d\n", time_diff_in_ns(start, end));	
-		if (strcmp(par_string, seq_string))
-		{
-			fprintf(stderr, "toLowercase does not match up.\n");
-			return 1;
-		}
+	clock_gettime(CLOCK_MONOTONIC, meas_times->start);	
+	toLowercaseSeq(seq_string, len_string);
+	clock_gettime(CLOCK_MONOTONIC, meas_times->end);
+	meas_times->start++;
+	meas_times->end++;
 		
-		free(par_string);
-		free(seq_string);
-		return 0;
+	if (strcmp(par_string, seq_string))
+	{
+		fprintf(stderr, "toLowercase does not match up.\n");
+		return 1;
 	}
-	
+		
+	free(par_string);
+	free(seq_string);
+	return 0;
+}
+\end{lstlisting}
+Anschließend findet noch die Messung für die 'toLowercase' Funktionen statt.
+Am Ende wird hier der Speicher für 'par\_string' und 'seq\_string' befreit.
+
+\subsubsection{Schreibfunktion}
+Der Schreib-Teil in der 'main'-Funktion ist bspw. in \ref{code:main} in line 20-23 zu sehen.
+Es wird eine Datei geöffnet und zusammen mit den Messergebnissen und der Anzahl der Messiterationen an die Funktion 'write\_times' übergeben.
+
+\begin{lstlisting}[language=c, numbers=left]
+	void write_times(FILE *file, struct times *meas_times, int iterations)
+	{
+		int i, j;
+		// header for csv
+		fprintf(file,
+		"count_par,count_seq,upper_par,upper_seq,lower_par,lower_seq\n");
+		
+		// set pointers to move on array	
+		meas_times->start = *meas_times->starts;
+		meas_times->end = *meas_times->ends;
+		
+		// write times for each measurement iteration
+		for (i = 0; i < iterations; i++)
+		{
+			// 6 values per iteration
+			for (j = 0; j < 5; j++)
+			{
+				
+				fprintf(file, "%d,", time_diff_in_ns(meas_times->start, meas_times->end));
+				meas_times->start++;
+				meas_times->end++;
+			}
+			// last number in line has newline instead of comma
+			fprintf(file, "%d\n", time_diff_in_ns(meas_times->start, meas_times->end));
+			meas_times->start++;
+			meas_times->end++;
+		}
+		free(meas_times->starts);
+		free(meas_times->ends);
+	}
 \end{lstlisting}
 
-Anschließend findet noch die Messung für die 'toLowercase' Funktionen statt.
-Hier wird in line 10 anstelle des Kommas ein Zeilenumbruch in die csv-Datei geschrieben, da die Ergebnisse der nächsten Messung in die nächste Zeile gehören.
+Diese Funktion looped durch die Messergebnisse in 'meas\_times' und schreibt diese in csv-Format in das gegebene File.
 
 Die Ergebnisse sind in Form von csv-Dateien im 'evaluation/data' Ordner in 'Aufgabe\_A' zu finden und können mit einem Python-Skript 'evaluation.py' (\ref{subsec:eval}) ausgewertet werden.
+
 
 
 \subsection{string\_manipulation\_seq.c}
@@ -436,7 +516,7 @@ __m256i merge_epi8_to_epi64(__m256i *counter_epi64, __m256i *counter_epi8)
 
 Die Idee ist, dass mehrere 8Bit Bereiche zusammengefasst werden. Dafür wird hier die Funktion '\_mm256\_sad\_epu8' verwendet. Diese Funktion ist eigentlich dazu da, um die absolute Differenz zwischen den 8Bit Blöcken der beiden gegebenen Register zu Berechnen und jeweils 8 davon horizontal zusammen zu addieren. Das Ergebnis wird dann in die niedrigsten 16Bit der 4 64Bit Blöcke eines 256 Bit Registers geschrieben. Als zweites Register wird ein Register mit nur Nullen verwendet, sodass die absolute Differenz immer der absolute Betrag der 8Bit Sektionen in epi8 Zählregister beträgt.
 Es werden also die ersten 8 8Bit Bereiche aufaddiert und in die Summe in die ersten 64Bit des Ergebnisregisters geschrieben. Die 2. 8 8Bit Bereiche in den 2. usw.
-Das Ergebnis dieser Berechnung wird auf das aktuelle epi64 Zählregister addiert, sodass in diesem gezählt werden kann bis die 64Bits nicht mehr aussreichen. Da 'countCharPar' mit einer 'int' Stringlänge arbeitet und nicht weiter arbeitet also diese, ist es nicht möglich, dass unser epi64 Register overflowed.
+Das Ergebnis dieser Berechnung wird auf das aktuelle epi64 Zählregister addiert, sodass in diesem gezählt werden kann bis die 64Bits nicht mehr aussreichen. Da 'countCharPar' mit einer 'int' Stringlänge arbeitet und nicht weiter arbeitet also diese, ist es nicht möglich, dass das epi64 Register overflowed.
 
 Auf gleiche Art und Weise werden die restlichen Zeichen, welche kein volles Register füllen, bearbeitet.
 
