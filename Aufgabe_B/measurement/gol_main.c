@@ -16,18 +16,17 @@ float get_time_diff_in_s(struct timespec *start, struct timespec *end)
 void write_times(FILE *file, int num, struct times *meas_times)
 {
 	int i;
-	struct timespec *start, *end;
- 
-	// use local scope pointer to move in mem(and improve readability)
-	start = meas_times->starts;
-	end = meas_times->ends;
 
+	// set pointer to start of timespec array
+	meas_times->start = *meas_times->starts;
+	meas_times->end = *meas_times->ends;
+ 
 	for (i = 0; i<num; i++)
 	{
-		fprintf(file, "start: %lds %ldns\nend: %lds %ldns\n", start->tv_sec, start->tv_nsec, end->tv_sec, end->tv_nsec);
-		fprintf(file, "\t = %2.4fs\n", get_time_diff_in_s(start, end));
-		start += sizeof(struct timespec);
-		end += sizeof(struct timespec);
+		fprintf(file, "start: %lds %ldns\nend: %lds %ldns\n", meas_times->start->tv_sec, meas_times->start->tv_nsec, meas_times->end->tv_sec, meas_times->end->tv_nsec);
+		fprintf(file, "\t = %2.4fs\n", get_time_diff_in_s(meas_times->start, meas_times->end));
+		meas_times->start++;
+		meas_times->end++;
 	}
 	free(meas_times->starts);
 	free(meas_times->ends);
@@ -58,14 +57,13 @@ void measure(size_t board_axis,
 {
 
 	board *b, *b1;
-	struct timespec *start, *end;
 
 	// allocate mem for the measurement times
 	meas_times->starts = malloc(measurement_num * sizeof(struct timespec));
 	meas_times->ends = malloc(measurement_num * sizeof(struct timespec));
 	// use local scope pointer to move in mem(and improve readability)
-	start = meas_times->starts;
-	end = meas_times->ends;
+	meas_times->start = *meas_times->starts;
+	meas_times->end = *meas_times->ends;
 
 	// start board with 20%~ of the cells alive
 	b = init_board(board_axis, board_axis,(board_axis*board_axis)/8 );
@@ -75,18 +73,23 @@ void measure(size_t board_axis,
 	{
 		// reset board
 		b1 = create_board_copy(b);
-		clock_gettime(CLOCK_MONOTONIC, start);
+		clock_gettime(CLOCK_MONOTONIC, meas_times->start);
 		// loop over game states
 		for (int i = 0; i < iterations; i++)
 		{
 			update_board_threaded(b1);
 		}
-		clock_gettime(CLOCK_MONOTONIC, end);
+		clock_gettime(CLOCK_MONOTONIC, meas_times->end);
 
 		// move pointer in timespec areas
-		start += sizeof(struct timespec);
-		end += sizeof(struct timespec);
+		meas_times->start++;
+		meas_times->end++;
 	}
+	// reset pointer to start of timespec array
+	meas_times->start = *meas_times->starts;
+	meas_times->end = *meas_times->ends;
+
+
 }
 
 
