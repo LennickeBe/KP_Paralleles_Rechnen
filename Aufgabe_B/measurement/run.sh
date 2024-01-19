@@ -18,19 +18,19 @@ make clean
 # Thread-Measurements
 export THREADS=1
 make gcc
-srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
 export THREADS=2
 make gcc
-srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
 export THREADS=4
 make gcc
-srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
 export THREADS=8
 make gcc
-srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
 export THREADS=16
 make gcc
-srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
 export THREADS=32
 make gcc
-srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
