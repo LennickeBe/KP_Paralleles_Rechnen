@@ -8,7 +8,7 @@
 #SBATCH --error=kp_pr_aufgabe_a_%j.err
 
 
-module load GCCcre/10.3.0
+module load GCCcore/10.3.0
 
 export OMP_PLACES=cores
 export OMP_PROC_BIND=close
