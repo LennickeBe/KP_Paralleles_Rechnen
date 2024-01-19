@@ -98,7 +98,7 @@ void update_board_threaded(board *b)
 	board *buf;
 	buf = create_board_copy(b);
 	int nthreads;
-#pragma omp parallel for num_threads(16) collapse(2)
+#pragma omp parallel for num_threads(THREADS) collapse(2)
 	for ( i = 0; i < b->rows; i++)
 	{
 		for ( j = 0; j < b->cols; j++)
