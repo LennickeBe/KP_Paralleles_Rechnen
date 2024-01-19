@@ -7,4 +7,30 @@
 #SBATCH --output=kp_pr_aufgabe_a_%j.out
 #SBATCH --error=kp_pr_aufgabe_a_%j.err
 
-srun --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
+
+module load GCCcre/10.3.0
+
+export OMP_PLACES=cores
+export OMP_PROC_BIND=close
+
+make clean
+
+# Thread-Measurements
+export THREADS=1
+make all
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+export THREADS=2
+make all
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+export THREADS=4
+make all
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+export THREADS=8
+make all
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+export THREADS=16
+make all
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
+export THREADS=32
+make all
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
