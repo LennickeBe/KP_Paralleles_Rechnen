@@ -17,20 +17,20 @@ make clean
 
 # Thread-Measurements
 export THREADS=1
-make all
+make gcc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
 export THREADS=2
-make all
+make gcc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
 export THREADS=4
-make all
+make gcc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
 export THREADS=8
-make all
+make gcc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
 export THREADS=16
-make all
+make gcc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
 export THREADS=32
-make all
+make gcc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 --export=ALL ./gol_main
