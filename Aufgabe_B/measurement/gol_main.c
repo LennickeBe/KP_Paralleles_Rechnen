@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 
@@ -89,14 +90,30 @@ void measure(size_t board_axis,
 	meas_times->start = *meas_times->starts;
 	meas_times->end = *meas_times->ends;
 
-
 }
 
+
+
+char* concat(char *s1, char *s2)
+{
+    char *result;
+    // +1 for '\0' at the end
+    result = malloc(strlen(s1) + strlen(s2) + 1);
+    // add first string
+    strcpy(result, s1);
+    // append second string
+    strcat(result, s2);
+    return result;
+}
 
 void main ()
 {
 	struct times meas_times[5];
 	FILE *file;
+	char *path;
+       	path = concat(concat("../evaluation/data/", COMPILER_STR),
+		      concat("/", THREADS_STR));
+
 
 	//visualize(200, 10);
 	
@@ -110,21 +127,26 @@ void main ()
 	measure(8192, 1, 1, &meas_times[3]);
 	//32768x32768
 	measure(32768, 1, 1, &meas_times[4]);	
-	
+
 	// write results
-	file = fopen("times128.csv", "w");
+	file = fopen(concat(path,
+			    concat("/","times128.csv")), "w");
 	write_times(file,1,  &meas_times[0]);
 	fclose(file);
-	file = fopen("times512.csv", "w");
+	file = fopen(concat(path,
+			    concat("/","times512.csv")), "w");
 	write_times(file,1,  &meas_times[1]);
 	fclose(file);
-	file = fopen("times2048.csv", "w");
+	file = fopen(concat(path,
+			    concat("/","times2048.csv")), "w");
 	write_times(file,1,  &meas_times[2]);
 	fclose(file);
-	file = fopen("times8192.csv", "w");
+	file = fopen(concat(path,
+			    concat("/","times8192.csv")), "w");
 	write_times(file,1,  &meas_times[3]);
 	fclose(file);
-	file = fopen("times32769.csv", "w");
+	file = fopen(concat(path,
+			    concat("/","times32769.csv")), "w");
 	write_times(file,1,  &meas_times[4]);
 	fclose(file);
 }
