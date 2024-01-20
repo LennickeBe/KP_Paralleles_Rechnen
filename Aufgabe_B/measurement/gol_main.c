@@ -18,14 +18,18 @@ void write_times(FILE *file, int num, struct times *meas_times)
 {
 	int i;
 
+	// header
+	fprintf(file, "time\n");
+
 	// set pointer to start of timespec array
 	meas_times->start = *meas_times->starts;
 	meas_times->end = *meas_times->ends;
  
 	for (i = 0; i<num; i++)
 	{
-		fprintf(file, "start: %lds %ldns\nend: %lds %ldns\n", meas_times->start->tv_sec, meas_times->start->tv_nsec, meas_times->end->tv_sec, meas_times->end->tv_nsec);
-		fprintf(file, "\t = %2.4fs\n", get_time_diff_in_s(meas_times->start, meas_times->end));
+		// fprintf(file, "start: %lds %ldns\nend: %lds %ldns\n", meas_times->start->tv_sec, meas_times->start->tv_nsec, meas_times->end->tv_sec, meas_times->end->tv_nsec);
+		// fprintf(file, "\t = %2.4fs\n", get_time_diff_in_s(meas_times->start, meas_times->end));
+		fprintf(file, "%2.6fs\n", get_time_diff_in_s(meas_times->start, meas_times->end));
 		meas_times->start++;
 		meas_times->end++;
 	}
@@ -110,6 +114,8 @@ void main ()
 {
 	struct times meas_times[5];
 	FILE *file;
+	int iterations = 20;
+
 	char *path;
        	path = concat(concat("../evaluation/data/", COMPILER_STR),
 		      concat("/", THREADS_STR));
@@ -118,35 +124,35 @@ void main ()
 	//visualize(200, 10);
 	
 	//128x128
-	measure(128, 1, 1, &meas_times[0]);
+	measure(128, iterations, 1, &meas_times[0]);
 	//512x512
-	measure(512, 1, 1, &meas_times[1]);
+	measure(512, iterations, 1, &meas_times[1]);
 	//2048x2048
-	measure(2048, 1, 1, &meas_times[2]);
+	measure(2048, iterations, 1, &meas_times[2]);
 	//8192x8192
-	measure(8192, 1, 1, &meas_times[3]);
+	measure(8192, iterations, 1, &meas_times[3]);
 	//32768x32768
-	measure(32768, 1, 1, &meas_times[4]);	
+	measure(32768, iterations, 1, &meas_times[4]);	
 
 	// write results
 	file = fopen(concat(path,
 			    concat("/","times128.csv")), "w");
-	write_times(file,1,  &meas_times[0]);
+	write_times(file, iterations,  &meas_times[0]);
 	fclose(file);
 	file = fopen(concat(path,
 			    concat("/","times512.csv")), "w");
-	write_times(file,1,  &meas_times[1]);
+	write_times(file, iterations,  &meas_times[1]);
 	fclose(file);
 	file = fopen(concat(path,
 			    concat("/","times2048.csv")), "w");
-	write_times(file,1,  &meas_times[2]);
+	write_times(file, iterations,  &meas_times[2]);
 	fclose(file);
 	file = fopen(concat(path,
 			    concat("/","times8192.csv")), "w");
-	write_times(file,1,  &meas_times[3]);
+	write_times(file, iterations,  &meas_times[3]);
 	fclose(file);
 	file = fopen(concat(path,
 			    concat("/","times32769.csv")), "w");
-	write_times(file,1,  &meas_times[4]);
+	write_times(file, iterations,  &meas_times[4]);
 	fclose(file);
 }
