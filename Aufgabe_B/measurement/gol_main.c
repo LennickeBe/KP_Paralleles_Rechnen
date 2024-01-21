@@ -152,7 +152,7 @@ void main ()
 	write_times(file, iterations,  &meas_times[3]);
 	fclose(file);
 	file = fopen(concat(path,
-			    concat("/","times32769.csv")), "w");
+			    concat("/","times32768.csv")), "w");
 	write_times(file, iterations,  &meas_times[4]);
 	fclose(file);
 }
