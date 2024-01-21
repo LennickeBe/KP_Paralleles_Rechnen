@@ -35,6 +35,8 @@ export THREADS=32
 make gcc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
 
+module load intel-compilers
+
 export THREADS=1
 make icc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 export OMP_PLACES=cores; export OMP_PROC_BIND=close; ./gol_main
