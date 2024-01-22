@@ -9,7 +9,7 @@
 \begin{document}
 
 \section{Aufgabenstellung}
-Implementieren Sie eine thread-parallele Variante von Conways "Game-of-Life" mit periodic boundary conditions. Nutzen Sie dazu OpenMP Compiler-Direktiven. Benutzen Sie double buffering um Abhängigkeiten aufzulösen.
+Implementieren Sie eine thread-parallele Variante von Conways 'Game-of-Life' mit periodic boundary conditions. Nutzen Sie dazu OpenMP Compiler-Direktiven. Benutzen Sie double buffering um Abhängigkeiten aufzulösen.
 
 \begin{itemize}
 	\item Beschreiben Sie Ihren Ansatz und gehen Sie sicher, dass die Arbeit thread-parallel ausgeführt wird.
@@ -21,6 +21,20 @@ Implementieren Sie eine thread-parallele Variante von Conways "Game-of-Life" mit
 	\item Führen Sie jeweils 20 Messungen durch und analysieren Sie die Ergebnisse mit geeigneten statistischen Mitteln.
 \end{itemize}
 
+\subsection{Conways 'Game of Life'}
+Conways 'Game of Life' ist ein Gedankenspiel bei dem auf einem zweidimensionalen Spielbrett(board) Felder(cell) 'lebendig' oder 'tot' sind. Im Spielverlauf können die Felder 'lebendig werden', 'sterben', 'am Leben' bzw. 'Tot bleiben'. Das Aktualisieren basiert auf 4 Regeln:\cite{conwaysgame_wiki}
+ 
+\begin{itemize}
+	\item Jede lebende Zelle mit weniger als 2 lebendigen Nachbarn stirbt (Unterpopulation)
+ 	\item Jede lebende Zelle mit 2 oder 3 lebendigen Nachbarn bleibt am Leben
+ 	\item Jede lebende Zelle mit mehr als 3 lebendigen Nachbarn stirbt (Überpopulation)
+ 	\item Jede tote Zelle mit genau 3 lebendigen Nachbarn wird lebendig (Reproduktion)
+\end{itemize}
+
+ 
+ Mit diesen einfachen Regeln und wiederholtem Aktualisieren des Boards bildet es ein komplexes System, welches mehrere Interpretionsweisen erlaubt.\cite{conwaysgame_wiki}\newline
+ In diesem Bericht ist das Spiel selbst nicht von besonderem Interesse, sondern die Programmiertechnische Umsetzung der Aktualisierung des Boards unter der Verwendung von openMP.
+ 
 \section{Umsetzung}
 \section{Ausführung}
 \subsection{Hardware}
@@ -49,6 +63,10 @@ Relevant für die Reproduzierbarkeit sind die Versionen der verwendeten Biblioth
 	\bibitem{hpc_compendium}
 	HPC Compendium, 'HPC Resources', 12.01.2024\newline
 	\url{https://doc.zih.tu-dresden.de/jobs_and_resources/hardware_overview/#romeo}
+	
+	\bibitem{conwaysgame_wiki}
+	Wikipedia Seite, 'Conways Spiel des Lebens', 22.01.2024\newline
+	\url{https://de.wikipedia.org/wiki/Conways_Spiel_des_Lebens#Die_Spielregeln}
 \end{thebibliography}
 
 \end{document}
