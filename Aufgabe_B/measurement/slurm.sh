@@ -7,6 +7,9 @@
 #SBATCH --output=kp_pr_aufgabe_a_%j.out
 #SBATCH --error=kp_pr_aufgabe_a_%j.err
 
+# make sure run.sh is executable
+chmod u+x run.sh
+
 
 module load GCCcore/10.3.0
 
