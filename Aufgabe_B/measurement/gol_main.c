@@ -19,7 +19,7 @@ void write_times(FILE *file, int num, struct times *meas_times)
 	int i;
 
 	// header
-	fprintf(file, "time\n");
+	fprintf(file, "time[s]\n");
 
 	// set pointer to start of timespec array
 	meas_times->start = *meas_times->starts;
@@ -29,7 +29,7 @@ void write_times(FILE *file, int num, struct times *meas_times)
 	{
 		// fprintf(file, "start: %lds %ldns\nend: %lds %ldns\n", meas_times->start->tv_sec, meas_times->start->tv_nsec, meas_times->end->tv_sec, meas_times->end->tv_nsec);
 		// fprintf(file, "\t = %2.4fs\n", get_time_diff_in_s(meas_times->start, meas_times->end));
-		fprintf(file, "%2.6fs\n", get_time_diff_in_s(meas_times->start, meas_times->end));
+		fprintf(file, "%2.6f\n", get_time_diff_in_s(meas_times->start, meas_times->end));
 		meas_times->start++;
 		meas_times->end++;
 	}
