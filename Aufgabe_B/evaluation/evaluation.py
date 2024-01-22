@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 
 thread_paths = [1, 2, 4, 8, 16, 32]
 board_sizes = [128, 512, 2048, 8192, 32768]
+image_path = "../report/images"
+
 
 def fix_size_plot(size: int, gcc_data: dict, icc_data: dict):
     fig = plt.subplots()
@@ -21,7 +23,12 @@ def fix_size_plot(size: int, gcc_data: dict, icc_data: dict):
             yerr=[ y[size][1] for x,y in icc_data.items()],
             color="orange", fmt="s", label="icc", capsize=4)
     plt.legend()
-    plt.show()
+    #plt.show()
+    plt.savefig(os.path.join(image_path,
+        f"fix_size_{size:05}.png"))
+    plt.clf()
+    plt.cla()
+    plt.close()
 
 
 def fix_threads_plot(threads: int, gcc_data: dict, icc_data: dict):
@@ -44,13 +51,16 @@ def fix_threads_plot(threads: int, gcc_data: dict, icc_data: dict):
             yerr=[ icc_data[size][1] for size in board_sizes],
             color="orange", fmt="s", label="icc", capsize=4)
     plt.legend()
-    plt.show()
-
+    #plt.show()
+    plt.savefig(os.path.join(image_path,
+        f"fix_threads_{threads:02}.png"))
+    plt.clf()
+    plt.cla()
+    plt.close()
 
 def compiler_compare_plots(gcc_data: dict, icc_data: dict):
     # fixed size multiple threads
     for size in board_sizes:
-        break
         fix_size_plot(size, gcc_data, icc_data)
     # fixed threads mulitple sized
     for threads in thread_paths:
@@ -71,6 +81,10 @@ def main():
     data_path = "data"
     gcc_path = "gcc"
     icc_path = "icc"
+
+    # make sure path for the images is there
+    if not os.path.isdir(image_path):
+        os.makedirs(image_path)
 
     # gcc
     gcc_data = dict()
@@ -101,11 +115,6 @@ def main():
     
     compiler_compare_plots(gcc_data, icc_data)
     return
-    for i in gcc_data.items():
-        print(f"\n{i[0]}:")
-        for j in i[1].items():
-            print(j)
-
 
 if __name__=="__main__":
     main()
