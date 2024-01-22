@@ -80,23 +80,6 @@ void update_board(board *b)
 	int i, j;
 	board *buf;
 	buf = create_board_copy(b);
-
-	for ( i = 0; i < b->rows; i++)
-	{
-		for ( j = 0; j < b->cols; j++)
-		{
-			set_state(b, j, i, get_new_state(buf, j, i));
-		}
-	}
-	free(buf);
-}
-
-
-void update_board_threaded(board *b)
-{
-	int i, j;
-	board *buf;
-	buf = create_board_copy(b);
 	int nthreads;
 #pragma omp parallel for num_threads(THREADS) collapse(2)
 	for ( i = 0; i < b->rows; i++)

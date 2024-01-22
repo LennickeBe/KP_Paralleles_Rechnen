@@ -50,7 +50,7 @@ void visualize(size_t board_axis, int iterations)
 	{
 		snprintf(buf, 20, "pbms/foo%03d.pbm", i);
 		create_pbm(b, buf);
-		update_board_threaded(b);
+		update_board(b);
 	}
 }
 
@@ -82,7 +82,7 @@ void measure(size_t board_axis,
 		// loop over game states
 		for (int i = 0; i < iterations; i++)
 		{
-			update_board_threaded(b1);
+			update_board(b1);
 		}
 		clock_gettime(CLOCK_MONOTONIC, meas_times->end);
 
