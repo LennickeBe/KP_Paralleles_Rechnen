@@ -30,7 +30,7 @@ void coords_on_board(board *b, int *x, int *y)
 	{
 		*x = ( b->cols + *x ) % b->cols;
 	}
-	if ( *y < 0 || *y >= b->cols)
+	if ( *y < 0 || *y >= b->rows)
 	{
 		*y = ( b->rows + *y) % b->rows;
 	}
