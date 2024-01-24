@@ -10,14 +10,8 @@
 # make sure run.sh is executable
 chmod u+x run.sh
 
-
 module load GCCcore/10.3.0
-
-export OMP_PLACES=cores
-export OMP_PROC_BIND=close
-
 make clean
-
 # Thread-Measurements
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 1 gcc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 2 gcc
@@ -27,7 +21,7 @@ srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.s
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 32 gcc
 
 module load intel-compilers
-
+make clean
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 1 icc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 2 icc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 4 icc
