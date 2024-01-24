@@ -33,4 +33,4 @@ icc_gol_main: icc_gol_main.o icc_visualize.o icc_gol_board.o
 	icc -fopenmp -o gol_main gol_main.o visualize.o gol_board.o
 
 clean:
-	rm gol_board.o visualize.o gol_main.o gol_main pbms/test* pbms/*.gif pbms/foo*
+	rm gol_board.o visualize.o gol_main.o gol_main pbms/test* pbms/*.gif pbms/foo* pbms/*.mkv
