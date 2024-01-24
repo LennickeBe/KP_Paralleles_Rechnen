@@ -28,11 +28,13 @@ void coords_on_board(board *b, int *x, int *y)
 {
 	if ( *x < 0 || *x >= b->cols)
 	{
-		*x = ( b->cols + *x ) % b->cols;
+		//*x = ( b->cols + *x ) % b->cols;
+		*x = ((*x % b->cols) + b->cols) % b->cols;
 	}
 	if ( *y < 0 || *y >= b->rows)
 	{
-		*y = ( b->rows + *y) % b->rows;
+		//*y = ( b->rows + *y) % b->rows;
+		*y = ((*y % b->rows) + b->rows) % b->rows;
 	}
 }
 
