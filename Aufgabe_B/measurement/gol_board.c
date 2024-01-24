@@ -28,12 +28,10 @@ void coords_on_board(board *b, int *x, int *y)
 {
 	if ( *x < 0 || *x >= b->cols)
 	{
-		//*x = ( b->cols + *x ) % b->cols;
 		*x = ((*x % b->cols) + b->cols) % b->cols;
 	}
 	if ( *y < 0 || *y >= b->rows)
 	{
-		//*y = ( b->rows + *y) % b->rows;
 		*y = ((*y % b->rows) + b->rows) % b->rows;
 	}
 }
@@ -69,10 +67,12 @@ bool get_new_state(board *b, int x, int y)
 	{
 		if (neighbours < 2) return 0;
 		if (neighbours > 3) return 0;
+		return 1;
 	}
 	else
-	{
-		if ( neighbours == 3 ) return 1; 
+	{	
+		if ( neighbours == 3 ) return 1;
+		return 0;
 	}
 }
 
