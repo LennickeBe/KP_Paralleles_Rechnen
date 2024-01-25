@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --ntasks=12
-#SBATCH --time=00:25:00
+#SBATCH --time=04:30:00
 #SBATCH --account=p_lv_kp_wise2324
 #SBATCH --job-name=kp_pr_aufgabe_b
 #SBATCH --output=kp_pr_aufgabe_a_%j.out
