@@ -176,7 +176,7 @@ int main (int argc, char* argv[])
 
 		struct times meas_times;
 		FILE *file;
-		int meas_num = 20, iterations =100;
+		int meas_num = 20, iterations=1000;
 
 		char *path, *filename;
 		path = concat(concat("../evaluation/data/", COMPILER_STR),

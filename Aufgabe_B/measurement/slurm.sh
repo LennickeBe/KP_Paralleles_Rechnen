@@ -28,3 +28,10 @@ srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.s
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 8 icc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 16 icc
 srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 32 icc
+
+# OMP_SCHEDULE measurements
+
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 32 icc static
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 32 icc guided
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 32 icc dynamic
+srun -n 1 --cpu_bind=cores --distribution=block:block --cpu-freq=2000000 ./run.sh 32 icc auto
