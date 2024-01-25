@@ -109,7 +109,7 @@ char* concat(char *s1, char *s2)
     return result;
 }
 
-void main (int argc, char* argv[])
+int main (int argc, char* argv[])
 {
 	//visualize(10, 200);
 	//return;
@@ -161,10 +161,37 @@ void main (int argc, char* argv[])
 				    concat("/","times32768.csv")), "w");
 		write_times(file, meas_num,  &meas_times[4], iterations[4]);
 		fclose(file);
+		return 0;
 	}
 	// with cmd line arg
+	// this is for the OMP_SCHEDULE measurement
 	else
 	{
-		return;
+		if ((strcmp(COMPILER_STR, "icc")!=0 ||
+					(strcmp(THREADS_STR, "32")!=0)))
+		{
+			perror("Compiler needs to be icc and with 32 threads.\n");
+			return 1;
+		}
+
+		struct times meas_times;
+		FILE *file;
+		int meas_num = 20, iterations =100;
+
+		char *path, *filename;
+		path = concat(concat("../evaluation/data/", COMPILER_STR),
+			      concat("/", THREADS_STR));
+		filename = concat("/",
+				concat(argv[1], ".csv"));
+		
+		measure(128, meas_num, iterations, &meas_times);
+		
+		file = fopen(concat(path,
+				    filename), "w");
+		write_times(file, meas_num,  &meas_times, iterations);
+		fclose(file);
+		
+		return 0;
+
 	}
 }
