@@ -114,7 +114,8 @@ void main (int argc, char* argv[])
 	//visualize(10, 200);
 	//return;
 
-	if (argc==0)
+	// no cmd arg
+	if (argc==1)
 	{
 		struct times meas_times[5];
 		FILE *file;
@@ -161,6 +162,7 @@ void main (int argc, char* argv[])
 		write_times(file, meas_num,  &meas_times[4], iterations[4]);
 		fclose(file);
 	}
+	// with cmd line arg
 	else
 	{
 		return;
