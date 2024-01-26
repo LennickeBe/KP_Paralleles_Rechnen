@@ -25,7 +25,7 @@ def fix_size_plot(size: int, gcc_data: dict, icc_data: dict):
     plt.legend()
     #plt.show()
     plt.savefig(os.path.join(image_path,
-        f"fix_size_{size:05}.png"))
+        f"fix_size_{size:05}.png"), bbox_inches="tight")
     plt.clf()
     plt.cla()
     plt.close()
@@ -53,7 +53,7 @@ def fix_threads_plot(threads: int, gcc_data: dict, icc_data: dict):
     plt.legend()
     #plt.show()
     plt.savefig(os.path.join(image_path,
-        f"fix_threads_{threads:02}.png"))
+        f"fix_threads_{threads:02}.png"), bbox_inches="tight")
     plt.clf()
     plt.cla()
     plt.close()
@@ -65,6 +65,22 @@ def compiler_compare_plots(gcc_data: dict, icc_data: dict):
     # fixed threads mulitple sized
     for threads in thread_paths:
         fix_threads_plot(threads, gcc_data[threads], icc_data[threads])
+
+
+def omp_sched_compare(omp_data: dict):
+    
+    fig, ax = plt.subplots()
+    plt.title("Durchschnittliche Laufzeit für 128x128 Board mit 32 Threads für verschiedene OMP_SCHEDULEs. (icc compiled)")
+    plt.xlabel("OMP_SCHEDULE Typ")
+    plt.ylabel("Laufzeit [s]")
+    for key, value in omp_data.items():
+        plt.errorbar([key], [np.mean(value)], yerr=np.std(value), color="green", fmt="s")
+    #plt.show()
+    plt.savefig(os.path.join(image_path,
+        f"omp_sched_compare.png"), bbox_inches="tight")
+    plt.clf()
+    plt.cla()
+    plt.close()
 
 
 def df_to_mean_std(data: dict):
@@ -114,6 +130,16 @@ def main():
     icc_data = df_to_mean_std(icc_data)
     
     compiler_compare_plots(gcc_data, icc_data)
+
+    # OMP_SCHEDULE plots
+    omp_schedule = ["auto", "guided", "static", "dynamic"]
+    omp_data = dict()
+    path = os.path.join(data_path, icc_path, "32")
+    for sched_type in omp_schedule:
+        omp_data[sched_type] = pd.read_csv(os.path.join(path, f"{sched_type}.csv"))
+
+    omp_sched_compare(omp_data)
+
     return
 
 if __name__=="__main__":
