@@ -82,7 +82,10 @@ void update_board(board *b)
 	int i, j;
 	board *buf;
 	buf = create_board_copy(b);
-#pragma omp parallel for num_threads(THREADS) collapse(2)
+#pragma omp declare reduction(board: board*: omp_out = omp_out)\
+	initializer (omp_priv = create_board_copy(omp_orig))
+
+#pragma omp parallel for num_threads(THREADS) collapse(2) reduction (board: buf)
 	for ( i = 0; i < b->rows; i++)
 	{
 		for ( j = 0; j < b->cols; j++)
