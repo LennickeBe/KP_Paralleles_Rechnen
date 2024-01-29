@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 thread_paths = [1, 2, 4, 8, 16, 32]
 board_sizes = [128, 512, 2048, 8192, 32768]
 image_path = "../report/images"
-
+res_path = "../report/results.txt"
+res_file = open(res_path, 'w')
 
 def fix_size_plot(size: int, gcc_data: dict, icc_data: dict):
     fig = plt.subplots()
@@ -68,13 +69,16 @@ def compiler_compare_plots(gcc_data: dict, icc_data: dict):
 
 
 def omp_sched_compare(omp_data: dict):
-    
     fig, ax = plt.subplots()
     plt.title("Durchschnittliche Laufzeit für 128x128 Board mit 32 Threads für verschiedene OMP_SCHEDULEs. (icc compiled)")
     plt.xlabel("OMP_SCHEDULE Typ")
     plt.ylabel("Laufzeit [s]")
     for key, value in omp_data.items():
-        plt.errorbar([key], [np.mean(value)], yerr=np.std(value), color="green", fmt="s")
+        # use value.values for std otherwise a series is returned for some reason
+        plt.errorbar([key], [np.mean(value)], yerr=np.std(value.values), color="green", fmt="s")
+        #res_file.write(f"omp_schedule: {key} mean: {np.mean(value):.6f} std: {np.std(value.values):.6f}\n")
+        res_file.write(f"{key} & {np.mean(value):.6f} & {np.std(value.values):.6f} \\\\\n")
+
     #plt.show()
     plt.savefig(os.path.join(image_path,
         f"omp_sched_compare.png"), bbox_inches="tight")
@@ -85,11 +89,14 @@ def omp_sched_compare(omp_data: dict):
 
 def df_to_mean_std(data: dict):
     result = dict()
+
     for thread in thread_paths:
         result[thread] = dict()
         for size in board_sizes:
             result[thread][size] = (np.mean(data[thread][size]),
                 np.std(data[thread][size].values))
+            #res_file.write(f"thread: {thread} boardsize: {size} mean: {result[thread][size][0]:.6f} std: {result[thread][size][1]:.6f}\n")  
+            res_file.write(f"{thread} & {size} & {result[thread][size][0]:.6f} & {result[thread][size][1]:.6f} \\\\\n")  
     return result
 
 
@@ -126,14 +133,17 @@ def main():
             thread_data[size] = pd.read_csv(path)
         icc_data[thread] = thread_data
 
+    res_file.write("gcc:\n")
     gcc_data = df_to_mean_std(gcc_data)
+    res_file.write("icc:\n")
     icc_data = df_to_mean_std(icc_data)
-    
+
     compiler_compare_plots(gcc_data, icc_data)
 
     # OMP_SCHEDULE plots
     omp_schedule = ["auto", "guided", "static", "dynamic"]
     omp_data = dict()
+    res_file.write("omp_sched:\n")
     path = os.path.join(data_path, icc_path, "32")
     for sched_type in omp_schedule:
         omp_data[sched_type] = pd.read_csv(os.path.join(path, f"{sched_type}.csv"))
@@ -144,3 +154,4 @@ def main():
 
 if __name__=="__main__":
     main()
+    res_file.close()
