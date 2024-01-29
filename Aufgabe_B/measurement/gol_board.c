@@ -76,6 +76,14 @@ bool get_new_state(board *b, int x, int y)
 	}
 }
 
+board * init_empty_board(int rows, int cols)
+{
+	board *b = calloc(1, 2*sizeof(int) + (rows * cols) * sizeof(bool));
+	b->rows = rows;
+	b->cols = cols;
+	return b;
+}
+
 void board_merge(board * b1, board * b2)
 {
 	int i, limit = b1->cols * b1->rows;
@@ -87,7 +95,7 @@ void board_merge(board * b1, board * b2)
 
 #pragma omp declare reduction(board_merge: board*: \
 		board_merge(omp_out, omp_in)) \
-	initializer (omp_priv = create_board_copy(omp_orig))
+	initializer (omp_priv = init_empty_board(omp_orig->rows, omp_orig->cols))
 
 #pragma omp declare reduction(board: board*: omp_out = omp_out)\
 	initializer (omp_priv = create_board_copy(omp_orig))
