@@ -49,7 +49,7 @@ void visualize(size_t board_axis, int iterations)
 	{
 		snprintf(buf, 20, "pbms/foo%03d.pbm", i);
 		create_pbm(b, buf);
-		update_board(b);
+		b = update_board(b);
 	}
 }
 
@@ -81,7 +81,7 @@ void measure(size_t board_axis,
 		// loop over game states
 		for (int i = 0; i < iterations; i++)
 		{
-			update_board(b1);
+			b1 = update_board(b1);
 		}
 		clock_gettime(CLOCK_MONOTONIC, meas_times->end);
 
@@ -112,7 +112,7 @@ char* concat(char *s1, char *s2)
 int main (int argc, char* argv[])
 {
 	//visualize(10, 200);
-	//return;
+	//return 0;
 
 	// no cmd arg
 	if (argc==1)

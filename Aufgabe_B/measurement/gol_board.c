@@ -76,24 +76,43 @@ bool get_new_state(board *b, int x, int y)
 	}
 }
 
-
-void update_board(board *b)
+void board_merge(board * b1, board * b2)
 {
-	int i, j;
-	board *buf;
-	buf = create_board_copy(b);
+	int i, limit = b1->cols * b1->rows;
+	for (i = 0; i < limit; i++)
+	{
+		b1->grid[i] = b1->grid[i] | b2->grid[i];
+	}
+}
+
+#pragma omp declare reduction(board_merge: board*: \
+		board_merge(omp_out, omp_in)) \
+	initializer (omp_priv = create_board_copy(omp_orig))
+
 #pragma omp declare reduction(board: board*: omp_out = omp_out)\
 	initializer (omp_priv = create_board_copy(omp_orig))
 
-#pragma omp parallel for num_threads(THREADS) collapse(2) reduction (board: buf)
+board * update_board(board *b)
+{
+	int i, j;
+	board *buf;
+	//buf = create_board_copy(b);
+	size_t size = 2*sizeof(int) + (b->rows * b->cols) * sizeof(bool);
+	buf = calloc(1, size);
+	buf->cols = b->cols;
+	buf->rows = b->rows;
+
+
+#pragma omp parallel for num_threads(THREADS) collapse(2) reduction (board: b) reduction (board_merge: buf)
 	for ( i = 0; i < b->rows; i++)
 	{
 		for ( j = 0; j < b->cols; j++)
 		{
-			set_state(b, j, i, get_new_state(buf, j, i));
+			set_state(buf, j, i, get_new_state(b, j, i));
 		}
 	}
-	free(buf); 
+	free(b);
+	return buf;
 }
 
 
