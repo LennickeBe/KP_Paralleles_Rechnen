@@ -1,0 +1,2 @@
+for FILENAME in $(ls *.pbm); do convert $FILENAME ${FILENAME%.*}.png ;done
+ffmpeg -f image2 -i 'foo%03d.png' -vcodec mpeg4 -vf "setpts=3*PTS" out.mkv

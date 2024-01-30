@@ -1,0 +1,384 @@
+\documentclass[plainarticle,zihtitle,german,final,hyperref,utf8]{zihpub}
+\usepackage{setspace}
+\usepackage{listings}
+\author{Bengt Lennicke}
+\title{Komplexpraktikum "Paralleles Rechnen" \newline C - SIMD-parallele Ausführung von Conways Game-of-Life}
+
+\bibfiles{doku}
+
+
+\begin{document}
+
+\section{Aufgabenstellung}
+Implementieren Sie eine SIMD-parallele Variante von Conways "Game-of-Life" mit periodic boundary conditions. Nutzen Sie dazu OpenMP Compiler-Direktiven. Benutzen Sie double buffering um Abhängigkeiten aufzulösen.
+
+\begin{itemize}
+\item Beschreiben Sie Ihren Ansatz und gehen Sie sicher, dass die Arbeit SIMD-parallel ausgeführt wird, (beziehungsweise nicht-SIMD-parallel als Referenzmessung). Informationen dazu finden Sie in den FAQs
+\item Messen und Vergleichen Sie die Ausführungszeiten für aktiviertes und inaktives OpenMP, sowie den GCC, als auch den Intel Compiler bei Feldgrößen von 128x128, 512x512, 2048x2048, 8192x8192 und 32768x32768.
+\item Nutzen Sie für die Berechnung eine geeignete Anzahl an Schleifendurchläufen (Zyklen des Spiels), sodass der genutzte Timer genau genug ist.
+\item Nutzen Sie dafür die "romeo" Partition von taurus.
+\item Führen Sie jeweils 20 Messungen durch und analysieren Sie die Ergebnisse mit geeigneten statistischen Mitteln.
+\end{itemize}
+
+\subsection{Conways 'Game of Life'}
+Conways 'Game of Life' ist ein Gedankenspiel bei dem auf einem zweidimensionalen Spielbrett(board) Felder(cell) 'lebendig' oder 'tot' sind. Im Spielverlauf können die Felder 'lebendig werden', 'sterben', 'am Leben' bzw. 'Tot bleiben'. Das Aktualisieren basiert auf 4 Regeln:\cite{conwaysgame_wiki}
+ 
+\begin{itemize}
+	\item Jede lebende Zelle mit weniger als 2 lebendigen Nachbarn stirbt (Unterpopulation)
+ 	\item Jede lebende Zelle mit 2 oder 3 lebendigen Nachbarn bleibt am Leben
+ 	\item Jede lebende Zelle mit mehr als 3 lebendigen Nachbarn stirbt (Überpopulation)
+ 	\item Jede tote Zelle mit genau 3 lebendigen Nachbarn wird lebendig (Reproduktion)
+\end{itemize}
+
+ 
+ Mit diesen einfachen Regeln und wiederholtem Aktualisieren des Boards bildet es ein komplexes System, welches mehrere Interpretionsweisen erlaubt.\cite{conwaysgame_wiki}\newline
+ In diesem Bericht ist das Spiel selbst nicht von besonderem Interesse, sondern die Programmiertechnische Umsetzung der Aktualisierung des Boards unter der Verwendung von openMP.
+ 
+\section{Umsetzung}
+\subsection{Spielsetup}
+Das Spielbrett ist als Struktur in 'gol\_board.h' definiert.
+\begin{lstlisting}[language=c, numbers=left]
+	#include <stdbool.h>
+	typedef struct
+	{
+		int rows;
+		int cols;
+		bool grid[0];
+	} board;
+\end{lstlisting}
+Die Felder des Boards werden in einem Array von Bools 'grid' festgehalten. Dieses eindimensionale Array wird dann durch das Festlegen von der Anzahl von Reihen 'rows' und Spalten 'cols' als ein zweidimensionales Brett definiert.\newline
+Das 'grid' wird zunächst als leeres Arrays deklariert, relevant ist hier nur, dass es auf ein Array von bools verwiesen wird. Das Allokieren von Speicher für ein Array in gewünschter Boardgröße passiert in 'init\_board()'.
+\begin{lstlisting}[language=c, numbers=left]
+board* init_board(int rows, int cols, int start_cells) 
+{
+	board *b = calloc(1, 2*sizeof(int) + (rows * cols) * sizeof(bool));
+	b->rows = rows;
+	b->cols = cols;
+	
+	if (start_cells)
+	{
+		#include <math.h>
+		int i;
+		for ( i = 0; i < start_cells; i++)
+		{
+			set_state(b, random_int(0,b->cols),
+			random_int(0,b->rows),
+			1);
+		}
+	}
+	
+	// Glider
+	// 001
+	// 101
+	// 011
+	else
+	{
+		set_state(b, 2, 0, 1);
+		set_state(b, 0, 1, 1);
+		set_state(b, 2, 1, 1);
+		set_state(b, 1, 2, 1);
+		set_state(b, 2, 2, 1);
+	}
+	return b;
+}
+\end{lstlisting}
+Für die Struktur des Boards wird Speicher für die 2 Integer 'rows' und 'cols' sowie für alle Zellen allokiert und mit 0 initalisiert. Dadurch ist für das Setzen einer Startbelegung nur notwendig, dass einige Felder auf 'lebendig' d.h. auf 1 gesetzt werden müssen.\newline
+Die Anzahl der gewünschten lebendigen Zellen in der Startbelegung werden an die Funktion übergeben ('start\_cells'). Wenn die Zahl 0 ist, wird ein sogenannter 'Glider' gesetzt. Dieses Objekt bewegt sich Diagonal über das Spielbrett und bietet eine gute Möglichkeit zu testen, ob die Regeln des Spiels korrekt implementiert sind. Wenn 'start\_cells' ungleich 0 ist, wird dementsprechend oft ein zufälliges Feld gewählt, welches auf 1 gesetzt wird. Hierbei ist folglich möglich, dass eine Zelle zweimal gewählt wird und dementsprechend weniger als 'start\_cells' Zellen lebendig sind. Da für diesen Versuch nur wichtig ist, dass ein Board mit einer Startbelegung existiert, ist das nicht wichtig. Das zufällige Wählen der Zellen basiert auf der 'rand()' Funktion von 'math.h'.\newline
+Zum setzen des Status' der Zellen wird in dieser Funktion 'set\_state()' verwendet.
+\begin{lstlisting}[language=c, numbers=left]
+void set_state (board *b, int x, int y, bool state)
+{
+	coords_on_board(b, &x, &y);
+	b->grid[ y * b->cols + x ] = state;
+}
+\end{lstlisting}\label{code:set_state}
+Zunächst werden die Koordinaten auf das Spielbrett 'zugeschnitten'. In der Aufgabenstellung ist ein Spielbrett mit periodischen Randbedingungen gefordert, d.h. 'coords\_on\_board()' verändert x und y, sollten diese nicht zwischen 0 und 'cols' bzw. 0 und 'rows' liegen, sodass die Koordinaten wirder auf der Brett liegen.\newline
+Dadurch ist das Setzen der Zelle darunter nie ein Zugriff außerhalb des belegten Speichers. Es wird in das Array an der Stelle \begin{math}y*\text{b->cols} + x\end{math} geschrieben. Diese Rechnung ergibt sich daraus, dass x für die Spalte und y für die Reihe steht. Im eindimensionalen Arrays muss für einen Zugriff auf z.B. die 3. Reihe wird das Feld nach allen Elementen der ersten beiden Reihen gebraucht. Dementsprechend \begin{math}2*\text{'Anzahl der Elemente pro Reihe'}=2*\text{b->cols}\end{math}.\newline
+Für die periodischen Randbedingungen wird in 'coords\_on\_board()' modulo Rechnung verwendet.
+\begin{lstlisting}[language=c, numbers=left]
+void coords_on_board(board *b, int *x, int *y)
+{
+	if ( *x < 0 || *x >= b->cols)
+	{
+		*x = ((*x % b->cols) + b->cols) % b->cols;
+	}
+	if ( *y < 0 || *y >= b->rows)
+	{
+		*y = ((*y % b->rows) + b->rows) % b->rows;
+	}
+}
+\end{lstlisting}
+Ziel ist hier, dass z.B. x=-1 auf b->cols-1 abgebildet wird, d.h. die Nachbarzellen vom rechten Rand die Zellen ganz Links sind; analog mit Oben und Unten.
+Der modulo Operator '\%' in C soll folgende Gleichung erfüllen: \begin{math}a == (a / b) * b + a \% b\end{math}. Das bedeutet es sind auch negative Lösungen möglich. So ist z.B. mit x=-1 und b->cols=300 das Ergebnis \newline\begin{math}a \% b = a - (a/b)*b = -1 - (-1/300) * 300 = -1\end{math},\newline 
+weil die '/' Division in hier ganzzahlig teilt.
+Diese negative Zahl liegt dann im Interval [-b, b]. Die Zahlen im positiven Bereich werden anschließend durch \begin{math}+b \% b\end{math} nicht verändert. Die Zahlen im negativen Bereich werden dadurch wie gewünscht auf ihr positiven Counterpart abgebildet. 
+
+Der Status in der nächsten Iteration wird über die Funktion 'get\_new\_state()' bestimmt.
+\begin{lstlisting}[language=c, numbers=left]
+bool get_new_state(board *b, int x, int y)
+{
+	int neighbours = get_num_neighbours(b, x, y);
+	if (check_state(b, x, y))
+	{
+		if (neighbours < 2) return 0;
+		if (neighbours > 3) return 0;
+		return 1;
+	}
+	else
+	{
+		if ( neighbours == 3 ) return 1;
+		return 0;
+	}
+}
+\end{lstlisting}\label{code:get_new_state}
+Mit 'get\_num\_neighbours()' wird die Anzahl der lebendigen Nachbarn der Zelle bestimmt. Anschließend wird über Vergleiche ermittelt, ob der Status der Zelle 1 oder 0 (lebendig oder tot) seien soll.
+Für 'tote' Zellen wird nur überprüft, ob es 3 lebendige Nachbarn gibt, ansonsten ändert sich nichts. 'Lebendige' Zellen 'sterben' wenn sie weniger als 2 oder mehr als 3 Nachbarn haben. Hier wird zuerst mit 2 verglichen, da es wahrscheinlicher ist und in dem Fall der Vergleich '>3' gespart wird.\newline
+
+\begin{lstlisting}[language=c, numbers=left]
+int get_num_neighbours(board *b , int x, int y)
+{
+	return
+	check_state(b, x-1, y-1) + check_state(b, x, y-1) + check_state(b, x+1, y-1) +
+	check_state(b, x-1, y)   +                          check_state(b, x+1, y) +
+	check_state(b, x-1, y+1) + check_state(b, x, y+1) + check_state(b, x+1, y+1);
+}
+\end{lstlisting}
+Für die Bestimmung der lebendingen Nachbarn wird von jeder anliegenden Zelle (inkl. diagonal) der Status abgefragt und die Ergebnisse aufaddiert. Die Summe entspricht den lebenden Nachbarn. Die Funktion 'check\_state()' funktioniert genau wie 'set\_state()'.
+
+\subsection{Threaded Brett-Updates}
+Die Funktion 'update\_board()' nimmt ein Board entgegen und führt eine Iteration des Spiels dafür aus.
+
+\begin{lstlisting}[language=c, numbers=left]
+void update_board(board *b)
+{
+	int i, j;
+	board *buf;
+	buf = create_board_copy(b);
+	#pragma omp parallel for num_threads(THREADS) collapse(2)
+	for ( i = 0; i < b->rows; i++)
+	{
+		for ( j = 0; j < b->cols; j++)
+		{
+			set_state(b, j, i, get_new_state(buf, j, i));
+		}
+	}
+	free(buf); 
+}
+\end{lstlisting}\label{code:update_board}
+
+Die Veränderung der einzelnen Zellen soll keinen Einfluss auf die Statusupdates anderer Zellen haben. Dementsprechend wird eine Kopie des Boards erstellt mit 'create\_board\_copy()'. In dieser Funktion wird mit 'malloc()' der notwendige Speicher allokiert und mit 'memcpy' dann darin die Kopie erschaffen. Anschließend werden die einzelnen Zellen iteriert. Es wird der Zustand einer Zelle für die nächste Iteration auf der Kopie ermittelt und die tatsächliche Änderung wird auf dem original Board gemacht.\newline
+Das Iterieren über die Zellen wird mit 'openMP' bzw. 'omp.h' gethreaded. Die Compiler Anweisung dafür ist in Zeile 6. Darin wird festgelegt, dass die folgenden 2 ('collapse(2)') for-loops ('for') in threads ausgeführt werden sollen. Die Anzahl der Threads ist mit 'num\_threads(THREADS)' festgelegt auf den Wert vom Macro 'THREADS'. Das bietet die Möglichkeit beim Kompilieren die Anzahl der Threads festzulegen ohne den Quelltext anzupassen. Mehr dazu unter \ref{sec:run.sh} und \ref{sec:Makefile}.
+
+\subsection{Implementation der Zeitmessung}
+Die Verwendung bzw. Messung der 'update\_board()' Funktion ist in 'gol\_main.c' definiert. Außerdem ist darin die 'main()' Funktion, also der Eintrittspunkt in die Messanwendung', definiert.
+In dieser Mainfunktion wird unterschieden ob das Programm mit einem Kommandozeilen Argument aufgerufen wurde oder nicht. Wenn nicht werden die Messungen für die unterschiedlichen Boardgrößen durchgeführt. Wenn mit Argument, dann ist es ein Messung für die unterschiedlichen 'OMP\_SCHEDULE' Einstellungen und es wird nur eine analoge Messung am 128x128 Board gemacht.
+\begin{lstlisting}[language=c, numbers=left]
+// no cmd arg
+if (argc==1)
+{
+	struct times meas_times[5];
+	FILE *file;
+	int meas_num = 20;
+	int iterations[5] = {100,50,20,1,1};
+	
+	char *path;
+	path = concat(concat("../evaluation/data/", COMPILER_STR),
+	concat("/", THREADS_STR));
+
+	//128x128
+	measure(128, meas_num, iterations[0], &meas_times[0]);
+	...	
+	
+	// write results
+	file = fopen(concat(path,
+	concat("/","times128.csv")), "w");
+	write_times(file, meas_num,  &meas_times[0], iterations[0]);
+	fclose(file);
+	...
+	
+	return 0;
+}
+\end{lstlisting}
+Für jede Boardgröße werden 'meas\_num=20' Messungen durchgeführt. Die Start- und Endzeiten der Messungen werden pro Boardgröße in einer 'times' Struktur gespeichert. Diese Beininhaltet dafür unteranderem einen Pointer auf ein Array an 'timespec' Objekten von 'time.h'. Die Anzahl der Schritte, welche für ein Board durchgeführt werden unterscheidet sich für die einzelnen Boardgrößen. Für 128x128 werden 100 Schritte, für 512x512 50 Schritte, für 2048x2048 20 Schritte und für die restlichen Größen lediglich ein Schritt. Für die geringeren Boardgrößen werden mehr Schritte berechnet, damit die Messzeit nicht in zu kleinen Zeitbereichen liegt, in denen die Messfunktionen möglicherweise unpräzise werden. Die Laufzeiten werden beim Schreiben in die Dateien durch die Anzahl der Schritte dividiert, um vergleichbare 'Laufzeit pro Boarditeration' zu bekommen.\newline
+Die Berechnung des ersten Schrittes braucht etwas länger als die restlichen, da noch mehr Zellen 'leben' und 'get\_new\_state()'\ref{code:get_new_state} benötigt länger für 'lebendige' Zellen. Daher könnten Messungen mit mehr Schritten bei allen Boardgrößen das Ergebnis noch verbessern. Zu Beginn werden ~12,5\% der Zellen auf 'lebend' gesetzt. Da dies zufällig passiert sind auch viele Zellen einfach und sterben direkt nach dem 1. Schritt, weshalb das Board direkt danach deutlich leerer ist.\newline
+Die Messzeiten werden mit 'clock\_gettime(CLOCK\_MONOTONIC, time);' aus 'time.h' bestimmt.\newline
+Das Schreiben der Ergebnisse wird erst im Anschluss an die Messungen durchgeführt, um die Messungen nicht durch etwaige Schreibprozesse zu beeinflussen.
+
+\subsection{run.sh}\label{sec:run.sh}
+Das Shell-Skript 'run.sh' ermöglicht verschiedene Setups für eine Messung. So ist für \ref{code:update_board} z.B. die Umgebungsvariable 'THREADS' notwendig für das Kompilieren und für den gesamten Versuch Messungen mit unterschiedlichen Vorraussetzungen notwendig.
+\begin{lstlisting}[language=bash, numbers=left]
+#!/bin/sh
+
+make clean
+THREADS=$1 make $2
+if [ -z $3 ]; then
+	OMP_PLACES=cores OMP_PROC_BIND=close ./gol_main
+else
+	OMP_SCHEDULE=$3 OMP_PLACES=cores OMP_PROC_BIND=close ./gol_main $3
+fi
+	
+\end{lstlisting}
+Daher ist es über 3 Kommandozeilen Argumente möglich mit unterschiedlicher Anzahl an Threads und mit gcc oder icc zu Kompilieren. Desweiteren kann die Messung zusätzlich mit oder ohne 'OMP\_SCHEDULE' Einstellungen gestartet werden.
+Das Skript ermöglich desweiteren ein einfaches Starten mit den Variablen 'OMP\_PLACES=cores' und 'OMP\_PROC\_BIND=close', wodurch die Threads möglichst 'nah' beieinander laufen. Dadurch werden Zugriffszeiten auf gemeinsamen Speicher minimiert.\newline
+Durch dieses Implementation ist es möglich alle in der Aufgabenstellung geforderten Messungen in einem sbatch-Skript zu starten ohne den Quelltext oder ähnliches anpassen zu müssen. Genaueres dazu in \ref{sec:slurm.sh}.
+
+\subsection{Makefile}\label{sec:Makefile}
+Die Messanwendung wird mit 'make' gebaut und der GNU und Intel Compiler (gcc/icc) wird verwendet. Dafür ist im folgenden Makefile der Ablauf definiert.
+\begin{lstlisting}[numbers=left]
+gcc: gcc_gol_main
+icc: icc_gol_main
+
+threads:
+	if [ -z "${THREADS}" ]; then \
+		echo "THREADS is not defined."; \
+		exit 1; \
+	fi
+
+gcc_gol_board.o: threads gol_board.c
+	gcc -fopenmp -D THREADS=${THREADS} -c gol_board.c
+
+gcc_visualize.o: visualize.c
+	gcc -c visualize.c
+
+gcc_gol_main.o: gol_main.c
+	gcc -D THREADS=${THREADS} -D COMPILER=gcc -c gol_main.c
+
+gcc_gol_main: gcc_gol_main.o gcc_visualize.o gcc_gol_board.o
+	gcc -fopenmp -o gol_main gol_main.o visualize.o gol_board.o
+
+
+icc_gol_board.o: threads gol_board.c
+	icc -fopenmp -D THREADS=$(THREADS) -c gol_board.c
+
+icc_visualize.o: visualize.c
+	icc -c visualize.c
+
+icc_gol_main.o: gol_main.c
+	icc -D THREADS=${THREADS} -D COMPILER=icc -c gol_main.c
+
+icc_gol_main: icc_gol_main.o icc_visualize.o icc_gol_board.o
+	icc -fopenmp -o gol_main gol_main.o visualize.o gol_board.o
+
+clean:
+	rm gol_board.o visualize.o gol_main.o gol_main pbms/test* pbms/*.gif pbms/foo* pbms/*.mkv
+\end{lstlisting}
+
+Das Makefile unterteilt sich in 2 Teile: einen für den GNU Compiler und einen für den Intel Compiler. Durch jeweils 'make gcc' oder 'make icc' wird der dementsprechende Compiler verwendet.\newline
+Abgesehen vom Kompiler selbst und dem gesetzen 'COMPILER' Macro sind die beiden Bauprozesse analog. Für die Verwendung von openMP bzw. 'omp.h' wird der Tag '-fopenmp' beim Kompilieren von 'gol\_board.c' gesetzt. Außerdem werden wie bereits erwähnt die Macros 'THREADS' und 'COMPILER' mit '-D' gesetzt. Dadurch kann das Programm für verschiedene Anzahlen an Threads Kompiliert werden ohne, dass der Quelltext angepasst werden muss. Desweitern werden beide Macros im Programm verwendet für den Pfad zu den Dateien für die Messergebnisse.
+
+\subsection{slurm.sh}\label{sec:slurm.sh}
+Die Messungen werden auf dem 'romeo' Cluster der TU Dresden durchgeführt. Die Prozesse dafür werden von 'slurm' mit dem Starten eines 'sbatch' Skripts gestartet. Das folgende Skript lässt sequentiell die Messungen für die verschiedenen Threadzahlen, Compiler und 'OMP\_SCHEDULE'-Einstellungen laufen.
+\begin{lstlisting}[language=bash, numbers=left]
+#!/bin/bash
+
+#SBATCH --ntasks=16
+#SBATCH --time=04:30:00
+#SBATCH --account=p_lv_kp_wise2324
+#SBATCH --job-name=kp_pr_aufgabe_b
+#SBATCH --output=kp_pr_aufgabe_a_%j.out
+#SBATCH --error=kp_pr_aufgabe_a_%j.err
+
+# make sure run.sh is executable
+chmod u+x run.sh
+
+module load GCCcore/10.3.0
+make clean
+# Thread-Measurements
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh 1 gcc
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh 2 gcc
+...
+
+module load intel-compilers
+make clean
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh 1 icc
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh 2 icc
+...
+
+# OMP_SCHEDULE measurements
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh 32 icc static
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh 32 icc guided
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh 32 icc dynamic
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh 32 icc auto
+\end{lstlisting}
+Dafür wird jeweils mit srun ein Prozess auf einer CPU mit 2GHz gestartet. Die 2GHz sind über '--cpu-freq' festgelegt. Für den Prozess wird das in \ref{sec:run.sh} beschriebene Shell Skript gestartet mit unterschiedlichen Argumenten.
+Der Tag '--exclusive' wurde lediglich für die finale Messung verwendet, um sicherzustellen, dass andere Programme nicht die Ausführungszeiten beeinflussen.
+\section{Ausführung}
+\subsection{Hardware}
+Die Messung für die Bearbeitung der Aufgaben sind auf dem CPU Cluster Romeo der TU Dresden ausgeführt worden. Dieser Cluster bietet 192 nodes mit jeweils \cite{hpc_compendium}:
+\begin{itemize}
+	\item 2 x AMD EPYC CPU 7702 (64 cores) @ 2.0 GHz, Multithreading möglich
+	\item 512 GB RAM
+	\item 200 GB SSD Speicher
+	\item Betriebssystem: Rocky Linux 8.7
+\end{itemize}
+
+\subsection{Programm-Versionen}
+Relevant für die Reproduzierbarkeit sind die Versionen der verwendeten Bibliotheken und Programme.
+\begin{itemize}
+	\item GNU Make 4.2.1
+	\item gcc (GCC) 10.3.0
+	\item icc (ICC) 2021.7.1 20221019
+	\item Python 3.9.5
+	\begin{itemize}
+		\item numpy 1.24.1
+		\item pandas 2.0.0
+		\item matplotlib 3.3.4
+	\end{itemize}
+\end{itemize}
+\subsection{Messung auf 'Romeo'}
+Die Messung wurde auf dem 'romeo' cluster der TU Dresden durchgeführt mit folgenden Schritten.
+Zunächst ein Login darauf notwendig.
+\begin{lstlisting}[language=bash]
+	ssh <username>@login1.romeo.hpc.tu-dresden.de
+\end{lstlisting}
+
+Anschließend das Repository geklont:
+\begin{lstlisting}[language=bash]
+	git clone https://github.com/LennickeBe/KP_Paralleles_Rechnen.git
+\end{lstlisting}
+
+Eine Messung wird mit dem sbatch script 'run.sh' im Repository unter 'Aufgabe\_A/measurement' gestartet.
+
+\begin{lstlisting}[language=bash]
+	cd KP_Paralleles_Rechnen/Aufgabe_B/measurement
+	sbatch slurm.sh
+\end{lstlisting}
+
+Die Messergebnisse wurden durch ein python Programm ausgewertet mit folgendem Setup:
+\begin{lstlisting}[language=bash]
+	module load release/23.04
+	module load GCCcore/10.3.0
+	module load Python/3.9.5
+	cd ~/KP_Paralleles_Rechnen/Aufgabe_B/evaluation
+	python3 -m venv .venv
+	source .venv/bin/activate
+	pip install numpy==1.24.1 pandas==2.0.0 matplotlib==3.3.4
+\end{lstlisting}
+
+Für eine lokale Auswertung muss das eigene Setup entsprechend angepasst werden, dass die Versionen eingehalten werden.
+
+Gestartet wurde die Auswertung dann mit:
+
+\begin{lstlisting}[language=bash]
+	cd ~/KP_Paralleles_Rechnen/Aufgabe_A/evaluation
+	source .venv/bin/activate
+	python3 evaluation.py
+\end{lstlisting}
+
+Die Diagramme und Messwerte sind unter '~/KP\_Paralleles\_Rechnen/Aufgabe\_A/report/images' und '~/KP\_Paralleles\_Rechnen/Aufgabe\_A/report/results.txt' gespeichert.
+
+\section{Auswertung}
+\subsection{Compiler Vergleich}
+
+\newpage
+\begin{thebibliography}{9}
+	\bibitem{hpc_compendium}
+	HPC Compendium, 'HPC Resources', 12.01.2024\newline
+	\url{https://doc.zih.tu-dresden.de/jobs_and_resources/hardware_overview/#romeo}
+	
+	\bibitem{conwaysgame_wiki}
+	Wikipedia Seite, 'Conways Spiel des Lebens', 22.01.2024\newline
+	\url{https://de.wikipedia.org/wiki/Conways_Spiel_des_Lebens#Die_Spielregeln}
+\end{thebibliography}
+
+\end{document}
