@@ -1,7 +1,7 @@
 gcc: gcc_gol_main
 icc: icc_gol_main
 
-gcc_gol_board.o: threads gol_board.c
+gcc_gol_board.o: gol_board.c
 	gcc -mavx2 -fopenmp -c gol_board.c
 
 gcc_visualize.o: visualize.c
@@ -14,7 +14,7 @@ gcc_gol_main: gcc_gol_main.o gcc_visualize.o gcc_gol_board.o
 	gcc -mavx2 -fopenmp -o gol_main gol_main.o visualize.o gol_board.o
 
 
-icc_gol_board.o: threads gol_board.c
+icc_gol_board.o: gol_board.c
 	icc -mavx2 -fopenmp -c gol_board.c
 
 icc_visualize.o: visualize.c
