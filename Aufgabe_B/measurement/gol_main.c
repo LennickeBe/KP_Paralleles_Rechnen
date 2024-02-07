@@ -40,16 +40,19 @@ void write_times(FILE *file, int num, struct times *meas_times, int iterations)
 
 void visualize(size_t board_axis, int iterations)
 {
-	board *b;
+	board *b, *b2, *tmp;
 	char buf[20];
 
 	b = init_board(board_axis, board_axis,0);
-
+	b2 = init_board(board_axis, board_axis, 0);
 	for (int i = 0; i < iterations; i++)
 	{
 		snprintf(buf, 20, "pbms/foo%03d.pbm", i);
 		create_pbm(b, buf);
-		b = update_board(b);
+		update_board(b, b2);
+		tmp = b;
+		b = b2;
+		b2 = tmp;
 	}
 }
 
@@ -60,7 +63,7 @@ void measure(size_t board_axis,
 		struct times *meas_times)
 {
 
-	board *b, *b1;
+	board *b, *b1, *buf, *tmp;
 
 	// allocate mem for the measurement times
 	meas_times->starts = malloc(measurement_num * sizeof(struct timespec));
@@ -71,6 +74,7 @@ void measure(size_t board_axis,
 
 	// start board with 20%~ of the cells alive
 	b = init_board(board_axis, board_axis,(board_axis*board_axis)/8 );
+	buf = init_board(board_axis, board_axis,(board_axis*board_axis)/8 );
 
 	// play the game with the same board multiple times
 	for (int j = 0; j < measurement_num; j++)
@@ -81,7 +85,10 @@ void measure(size_t board_axis,
 		// loop over game states
 		for (int i = 0; i < iterations; i++)
 		{
-			b1 = update_board(b1);
+			update_board(b1, buf);
+			tmp = buf;
+			buf = b1;
+			b1 = tmp;
 		}
 		clock_gettime(CLOCK_MONOTONIC, meas_times->end);
 
