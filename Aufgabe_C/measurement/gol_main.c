@@ -114,84 +114,46 @@ int main (int argc, char* argv[])
 	//visualize(10, 200);
 	//return 0;
 
-	// no cmd arg
-	if (argc==1)
-	{
-		struct times meas_times[5];
-		FILE *file;
-		int meas_num = 20;
-		int iterations[5] = {100,50,20,1,1};
+	struct times meas_times[5];
+	FILE *file;
+	int meas_num = 20;
+	int iterations[5] = {100,50,20,1,1};
 
-		char *path;
-		path = concat(concat("../evaluation/data/", COMPILER_STR),
-			      concat("/", THREADS_STR));
+	char *path;
+	path = concat("../evaluation/data/", COMPILER_STR);
 
-
-		//visualize(200, 10);
-		
-		//128x128
-		measure(128, meas_num, iterations[0], &meas_times[0]);
-		//512x512
-		measure(512, meas_num, iterations[1], &meas_times[1]);
-		//2048x2048
-		measure(2048, meas_num, iterations[2], &meas_times[2]);
-		//8192x8192
-		measure(8192, meas_num, iterations[3], &meas_times[3]);
-		//32768x32768
-		measure(32768, meas_num, iterations[4], &meas_times[4]);	
-
-		// write results
-		file = fopen(concat(path,
-				    concat("/","times128.csv")), "w");
-		write_times(file, meas_num,  &meas_times[0], iterations[0]);
-		fclose(file);
-		file = fopen(concat(path,
-				    concat("/","times512.csv")), "w");
-		write_times(file, meas_num,  &meas_times[1], iterations[1]);
-		fclose(file);
-		file = fopen(concat(path,
-				    concat("/","times2048.csv")), "w");
-		write_times(file, meas_num,  &meas_times[2], iterations[2]);
-		fclose(file);
-		file = fopen(concat(path,
-				    concat("/","times8192.csv")), "w");
-		write_times(file, meas_num,  &meas_times[3], iterations[3]);
-		fclose(file);
-		file = fopen(concat(path,
-				    concat("/","times32768.csv")), "w");
-		write_times(file, meas_num,  &meas_times[4], iterations[4]);
-		fclose(file);
-		return 0;
-	}
-	// with cmd line arg
-	// this is for the OMP_SCHEDULE measurement
-	else
-	{
-		if ((strcmp(COMPILER_STR, "icc")!=0 ||
-					(strcmp(THREADS_STR, "32")!=0)))
-		{
-			perror("Compiler needs to be icc and with 32 threads.\n");
-			return 1;
-		}
-
-		struct times meas_times;
-		FILE *file;
-		int meas_num = 20, iterations=1000;
-
-		char *path, *filename;
-		path = concat(concat("../evaluation/data/", COMPILER_STR),
-			      concat("/", THREADS_STR));
-		filename = concat("/",
-				concat(argv[1], ".csv"));
-		
-		measure(128, meas_num, iterations, &meas_times);
-		
-		file = fopen(concat(path,
-				    filename), "w");
-		write_times(file, meas_num,  &meas_times, iterations);
-		fclose(file);
-		
-		return 0;
-
-	}
+	//128x128
+	measure(128, meas_num, iterations[0], &meas_times[0]);
+	//512x512
+	measure(512, meas_num, iterations[1], &meas_times[1]);
+	//2048x2048
+	//measure(2048, meas_num, iterations[2], &meas_times[2]);
+	//8192x8192
+	//measure(8192, meas_num, iterations[3], &meas_times[3]);
+	//32768x32768
+	//measure(32768, meas_num, iterations[4], &meas_times[4]);	
+	
+	// write results
+	file = fopen(concat(path,
+			    concat("/","times128.csv")), "w");
+	write_times(file, meas_num,  &meas_times[0], iterations[0]);
+	fclose(file);
+	file = fopen(concat(path,
+			    concat("/","times512.csv")), "w");
+	write_times(file, meas_num,  &meas_times[1], iterations[1]);
+	fclose(file);
+	return 0;
+	file = fopen(concat(path,
+			    concat("/","times2048.csv")), "w");
+	write_times(file, meas_num,  &meas_times[2], iterations[2]);
+	fclose(file);
+	file = fopen(concat(path,
+			    concat("/","times8192.csv")), "w");
+	write_times(file, meas_num,  &meas_times[3], iterations[3]);
+	fclose(file);
+	file = fopen(concat(path,
+			    concat("/","times32768.csv")), "w");
+	write_times(file, meas_num,  &meas_times[4], iterations[4]);
+	fclose(file);
+	return 0;
 }

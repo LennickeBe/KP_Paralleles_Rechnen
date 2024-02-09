@@ -24,7 +24,8 @@ board * create_board_copy(board *b)
 	return buf;
 }
 
-void coords_on_board(board *b, int *x, int *y)
+#pragma omp declare simd
+static inline void coords_on_board(board *b, int *x, int *y)
 {
 	if ( *x < 0 || *x >= b->cols)
 	{
@@ -36,22 +37,24 @@ void coords_on_board(board *b, int *x, int *y)
 	}
 }
 
-
-bool check_state(board *b, int x, int y)
+#pragma omp declare simd
+static inline bool check_state(board *b, int x, int y)
 {
 	coords_on_board(b, &x, &y);
 	return b->grid[ y * b->cols + x];
 }
 
 
-void set_state (board *b, int x, int y, bool state)
+#pragma omp declare simd
+static inline void set_state (board *b, int x, int y, bool state)
 {
 	coords_on_board(b, &x, &y);
 	b->grid[ y * b->cols + x ] = state;
 }
 
 
-int get_num_neighbours(board *b , int x, int y)
+#pragma omp declare simd
+static inline int get_num_neighbours(board *b , int x, int y)
 {
 	return
 	check_state(b, x-1, y-1) + check_state(b, x, y-1) + check_state(b, x+1, y-1) +
@@ -60,7 +63,8 @@ int get_num_neighbours(board *b , int x, int y)
 }
 
 
-bool get_new_state(board *b, int x, int y)
+#pragma omp declare simd
+static inline bool get_new_state(board *b, int x, int y)
 {
 	int neighbours = get_num_neighbours(b, x, y);
 	if (check_state(b, x, y))
@@ -75,6 +79,7 @@ bool get_new_state(board *b, int x, int y)
 		return 0;
 	}
 }
+
 
 board * init_empty_board(int rows, int cols)
 {
@@ -93,8 +98,8 @@ board * update_board(board *b)
 	buf = calloc(1, size);
 	buf->cols = b->cols;
 	buf->rows = b->rows;
-	
-#pragma omp simd collapse(2)
+
+#pragma omp simd collapse(2)	
 	for ( i = 0; i < b->rows; i++)
 	{
 		for ( j = 0; j < b->cols; j++)
