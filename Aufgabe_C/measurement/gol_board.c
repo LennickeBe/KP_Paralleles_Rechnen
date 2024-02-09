@@ -89,16 +89,9 @@ board * init_empty_board(int rows, int cols)
 	return b;
 }
 
-board * update_board(board *b)
+void update_board(board *b, board *buf)
 {
 	int i, j;
-	board *buf;
-	//buf = create_board_copy(b);
-	size_t size = 2*sizeof(int) + (b->rows * b->cols) * sizeof(bool);
-	buf = calloc(1, size);
-	buf->cols = b->cols;
-	buf->rows = b->rows;
-
 #pragma omp simd collapse(2)	
 	for ( i = 0; i < b->rows; i++)
 	{
@@ -107,8 +100,6 @@ board * update_board(board *b)
 			set_state(buf, j, i, get_new_state(b, j, i));
 		}
 	}
-	free(b);
-	return buf;
 }
 
 
