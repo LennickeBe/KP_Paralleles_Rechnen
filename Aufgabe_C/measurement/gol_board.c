@@ -27,14 +27,11 @@ board * create_board_copy(board *b)
 #pragma omp declare simd
 static inline void coords_on_board(board *b, int *x, int *y)
 {
-	if ( *x < 0 || *x >= b->cols)
-	{
-		*x = ((*x % b->cols) + b->cols) % b->cols;
-	}
-	if ( *y < 0 || *y >= b->rows)
-	{
-		*y = ((*y % b->rows) + b->rows) % b->rows;
-	}
+	// avoid if/else by multiplying with 0/1 for the choice wanted
+	*x = *x						* ( *x>=0 && *x < b->cols ) +
+	     (((*x % b->cols) + b->cols) % b->cols)	* ( *x<0 || *x >= b->cols);
+	*y = *y						* ( *y>=0 && *y < b->rows ) +
+	     (((*y % b->rows) + b->rows) % b->rows)	* ( *y<0 || *y >= b->rows);
 }
 
 #pragma omp declare simd
@@ -67,17 +64,8 @@ static inline int get_num_neighbours(board *b , int x, int y)
 static inline bool get_new_state(board *b, int x, int y)
 {
 	int neighbours = get_num_neighbours(b, x, y);
-	if (check_state(b, x, y))
-	{
-		if (neighbours < 2) return 0;
-		if (neighbours > 3) return 0;
-		return 1;
-	}
-	else
-	{	
-		if ( neighbours == 3 ) return 1;
-		return 0;
-	}
+	return (check_state(b, x, y) && ( neighbours >= 2 && neighbours <= 3))
+		+ (!(check_state(b, x , y)) && (neighbours == 3));
 }
 
 
