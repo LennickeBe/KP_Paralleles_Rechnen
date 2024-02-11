@@ -27,11 +27,9 @@ board * create_board_copy(board *b)
 #pragma omp declare simd
 static inline void coords_on_board(board *b, int *x, int *y)
 {
-	// avoid if/else by multiplying with 0/1 for the choice wanted
-	*x = *x						* ( *x>=0 && *x < b->cols ) +
-	     (((*x % b->cols) + b->cols) % b->cols)	* ( *x<0 || *x >= b->cols);
-	*y = *y						* ( *y>=0 && *y < b->rows ) +
-	     (((*y % b->rows) + b->rows) % b->rows)	* ( *y<0 || *y >= b->rows);
+	// if not on board use periodic edge conditions
+	*x = ( *x>=0 && *x < b->cols ) ? *x : (((*x % b->cols) + b->cols) % b->cols);
+	*y = ( *y>=0 && *y < b->rows ) ? *y : (((*y % b->rows) + b->rows) % b->rows);
 }
 
 #pragma omp declare simd
@@ -64,19 +62,11 @@ static inline int get_num_neighbours(board *b , int x, int y)
 static inline bool get_new_state(board *b, int x, int y)
 {
 	int neighbours = get_num_neighbours(b, x, y);
-	return (check_state(b, x, y) && ( neighbours >= 2 && neighbours <= 3))
-		+ (!(check_state(b, x , y)) && (neighbours == 3));
+	return check_state(b, x, y) ? ( neighbours >= 2 && neighbours <= 3) : (neighbours == 3);
 }
 
 
-board * init_empty_board(int rows, int cols)
-{
-	board *b = calloc(1, 2*sizeof(int) + (rows * cols) * sizeof(bool));
-	b->rows = rows;
-	b->cols = cols;
-	return b;
-}
-
+#pragma omp declare simd
 void update_board(board *b, board *buf)
 {
 	int i, j;
