@@ -26,14 +26,9 @@ board * create_board_copy(board *b)
 
 void coords_on_board(board *b, int *x, int *y)
 {
-	if ( *x < 0 || *x >= b->cols)
-	{
-		*x = ((*x % b->cols) + b->cols) % b->cols;
-	}
-	if ( *y < 0 || *y >= b->rows)
-	{
-		*y = ((*y % b->rows) + b->rows) % b->rows;
-	}
+	// if not on board use periodic edge conditions
+	*x = ( *x>=0 && *x < b->cols ) ? *x : (((*x % b->cols) + b->cols) % b->cols);
+	*y = ( *y>=0 && *y < b->rows ) ? *y : (((*y % b->rows) + b->rows) % b->rows);
 }
 
 
@@ -63,26 +58,9 @@ int get_num_neighbours(board *b , int x, int y)
 bool get_new_state(board *b, int x, int y)
 {
 	int neighbours = get_num_neighbours(b, x, y);
-	if (check_state(b, x, y))
-	{
-		if (neighbours < 2) return 0;
-		if (neighbours > 3) return 0;
-		return 1;
-	}
-	else
-	{	
-		if ( neighbours == 3 ) return 1;
-		return 0;
-	}
+	return check_state(b, x, y) ? ( neighbours >= 2 && neighbours <= 3) : (neighbours == 3);
 }
 
-board * init_empty_board(int rows, int cols)
-{
-	board *b = calloc(1, 2*sizeof(int) + (rows * cols) * sizeof(bool));
-	b->rows = rows;
-	b->cols = cols;
-	return b;
-}
 
 void board_merge(board * b1, board * b2)
 {
