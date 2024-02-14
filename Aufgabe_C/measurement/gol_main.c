@@ -128,6 +128,14 @@ int main (int argc, char* argv[])
 
 	char *path;
 	path = concat("../evaluation/data/", COMPILER_STR);
+	if (SIMD)
+	{
+		path = concat(path, "/simd/");
+	}
+	else
+	{
+		path = concat(path, "/no_simd/");
+	}
 
 	//128x128
 	measure(128, meas_num, iterations[0], &meas_times[0]);

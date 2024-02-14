@@ -12,10 +12,13 @@ chmod u+x run.sh
 
 module load GCCcore/10.3.0
 make clean
-# Thread-Measurements
+# SIMD-Measurements
 srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh gcc
 
 module load intel-compilers
 make clean
 srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh icc
+
+# no SMID-Measurements
+
 
