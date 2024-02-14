@@ -54,7 +54,7 @@ nicc_gol_main.o: gol_main.c
 	icc -D COMPILER=icc -D SIMD=0 -c gol_main.c
 
 nicc_gol_main: nicc_gol_main.o nicc_visualize.o nicc_gol_board.o
-	icc -mno-avx -mno-sse2 -mno-avx2 -fno-tree-vectoriz -o gol_main gol_main.o visualize.o gol_board.o
+	icc -mno-avx -mno-sse2 -mno-avx2 -fno-tree-vectorize -o gol_main gol_main.o visualize.o gol_board.o
 
 
 clean:
