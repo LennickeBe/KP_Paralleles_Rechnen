@@ -10,9 +10,15 @@
 # make sure run.sh is executable
 chmod u+x run.sh
 
+# make sure directories for data is there
+mkdir -p ../evaluation/data/gcc/simd
+mkdir -p ../evaluation/data/gcc/no_simd
+mkdir -p ../evaluation/data/icc/simd
+mkdir -p ../evaluation/data/icc/no_simd
+
+# SIMD-Measurements
 module load GCCcore/10.3.0
 make clean
-# SIMD-Measurements
 srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh gcc
 
 module load intel-compilers
@@ -20,5 +26,12 @@ make clean
 srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh icc
 
 # no SMID-Measurements
+module load GCCcore/10.3.0
+make clean
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh ngcc
+
+module load intel-compilers
+make clean
+srun --exclusive -n 1 --cpu-freq=2000000 ./run.sh nicc
 
 
