@@ -1,5 +1,5 @@
 #!/bin/sh
 
 make clean
-make $2
+make $1
 ./gol_main
