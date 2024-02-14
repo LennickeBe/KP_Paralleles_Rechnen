@@ -66,11 +66,10 @@ static inline bool get_new_state(board *b, int x, int y)
 }
 
 
-#pragma omp declare simd
 void update_board(board *b, board *buf)
 {
 	int i, j;
-#pragma omp simd collapse(2)	
+#pragma omp parallel for simd collapse(2)	
 	for ( i = 0; i < b->rows; i++)
 	{
 		for ( j = 0; j < b->cols; j++)
