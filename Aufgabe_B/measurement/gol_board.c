@@ -62,18 +62,8 @@ bool get_new_state(board *b, int x, int y)
 }
 
 
-void board_merge(board * b1, board * b2)
-{
-	int i, limit = b1->cols * b1->rows;
-	for (i = 0; i < limit; i++)
-	{
-		b1->grid[i] = b1->grid[i] | b2->grid[i];
-	}
-}
-
 void update_board(board *b, board *buf)
 {
-
 #pragma omp parallel for num_threads(THREADS)
 for (int i = 0; i < b->rows; i++)
 	{
