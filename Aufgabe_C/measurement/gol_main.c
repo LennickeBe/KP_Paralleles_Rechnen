@@ -142,11 +142,11 @@ int main (int argc, char* argv[])
 	//512x512
 	measure(512, meas_num, iterations[1], &meas_times[1]);
 	//2048x2048
-	//measure(2048, meas_num, iterations[2], &meas_times[2]);
+	measure(2048, meas_num, iterations[2], &meas_times[2]);
 	//8192x8192
-	//measure(8192, meas_num, iterations[3], &meas_times[3]);
+	measure(8192, meas_num, iterations[3], &meas_times[3]);
 	//32768x32768
-	//measure(32768, meas_num, iterations[4], &meas_times[4]);	
+	measure(32768, meas_num, iterations[4], &meas_times[4]);	
 	
 	// write results
 	file = fopen(concat(path,
@@ -157,7 +157,6 @@ int main (int argc, char* argv[])
 			    concat("/","times512.csv")), "w");
 	write_times(file, meas_num,  &meas_times[1], iterations[1]);
 	fclose(file);
-	return 0;
 	file = fopen(concat(path,
 			    concat("/","times2048.csv")), "w");
 	write_times(file, meas_num,  &meas_times[2], iterations[2]);
