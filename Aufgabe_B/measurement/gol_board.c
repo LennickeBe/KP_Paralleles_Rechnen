@@ -24,7 +24,7 @@ board * create_board_copy(board *b)
 	return buf;
 }
 
-void coords_on_board(board *b, int *x, int *y)
+static inline void coords_on_board(board *b, int *x, int *y)
 {
 	// if not on board use periodic edge conditions
 	*x = ( *x>=0 && *x < b->cols ) ? *x : (((*x % b->cols) + b->cols) % b->cols);
@@ -32,21 +32,21 @@ void coords_on_board(board *b, int *x, int *y)
 }
 
 
-bool check_state(board *b, int x, int y)
+static inline bool check_state(board *b, int x, int y)
 {
 	coords_on_board(b, &x, &y);
 	return b->grid[ y * b->cols + x];
 }
 
 
-void set_state (board *b, int x, int y, bool state)
+static inline void set_state (board *b, int x, int y, bool state)
 {
 	coords_on_board(b, &x, &y);
 	b->grid[ y * b->cols + x ] = state;
 }
 
 
-int get_num_neighbours(board *b , int x, int y)
+static inline int get_num_neighbours(board *b , int x, int y)
 {
 	return
 	check_state(b, x-1, y-1) + check_state(b, x, y-1) + check_state(b, x+1, y-1) +
@@ -55,7 +55,7 @@ int get_num_neighbours(board *b , int x, int y)
 }
 
 
-bool get_new_state(board *b, int x, int y)
+static inline bool get_new_state(board *b, int x, int y)
 {
 	int neighbours = get_num_neighbours(b, x, y);
 	return check_state(b, x, y) ? ( neighbours >= 2 && neighbours <= 3) : (neighbours == 3);
