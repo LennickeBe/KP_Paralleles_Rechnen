@@ -139,13 +139,13 @@ int main (int argc, char* argv[])
 		//visualize(200, 10);
 		
 		//128x128
-		//measure(128, meas_num, iterations[0], &meas_times[0]);
+		measure(128, meas_num, iterations[0], &meas_times[0]);
 		//512x512
-		//measure(512, meas_num, iterations[1], &meas_times[1]);
+		measure(512, meas_num, iterations[1], &meas_times[1]);
 		//2048x2048
-		//measure(2048, meas_num, iterations[2], &meas_times[2]);
+		measure(2048, meas_num, iterations[2], &meas_times[2]);
 		//8192x8192
-		//measure(8192, meas_num, iterations[3], &meas_times[3]);
+		measure(8192, meas_num, iterations[3], &meas_times[3]);
 		//32768x32768
 		measure(32768, meas_num, iterations[4], &meas_times[4]);	
 
