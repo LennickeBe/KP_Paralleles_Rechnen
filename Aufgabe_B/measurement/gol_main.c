@@ -7,7 +7,6 @@
 #include <string.h>
 #include <time.h>
 
-
 float get_time_diff_in_s(struct timespec *start, struct timespec *end)
 {
 	return ((end->tv_sec - start->tv_sec) +
@@ -91,7 +90,7 @@ void measure(size_t board_axis,
 			b1 = tmp;
 		}
 		clock_gettime(CLOCK_MONOTONIC, meas_times->end);
-
+		free(b1);
 		// move pointer in timespec areas
 		meas_times->start++;
 		meas_times->end++;
@@ -99,6 +98,9 @@ void measure(size_t board_axis,
 	// reset pointer to start of timespec array
 	meas_times->start = *meas_times->starts;
 	meas_times->end = *meas_times->ends;
+
+	free(b);
+	free(buf);
 
 }
 
@@ -137,13 +139,13 @@ int main (int argc, char* argv[])
 		//visualize(200, 10);
 		
 		//128x128
-		measure(128, meas_num, iterations[0], &meas_times[0]);
+		//measure(128, meas_num, iterations[0], &meas_times[0]);
 		//512x512
-		measure(512, meas_num, iterations[1], &meas_times[1]);
+		//measure(512, meas_num, iterations[1], &meas_times[1]);
 		//2048x2048
-		measure(2048, meas_num, iterations[2], &meas_times[2]);
+		//measure(2048, meas_num, iterations[2], &meas_times[2]);
 		//8192x8192
-		measure(8192, meas_num, iterations[3], &meas_times[3]);
+		//measure(8192, meas_num, iterations[3], &meas_times[3]);
 		//32768x32768
 		measure(32768, meas_num, iterations[4], &meas_times[4]);	
 
