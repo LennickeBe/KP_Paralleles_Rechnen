@@ -24,6 +24,13 @@ board * create_board_copy(board *b)
 	return buf;
 }
 
+void synchronize_boards(board *target, board *source)
+{
+	size_t size = 2 * sizeof(int) + (source->rows * source->cols) * sizeof(bool);
+	memcpy(target, source, size);
+}
+
+
 static inline void coords_on_board(board *b, int *x, int *y)
 {
 	// if not on board use periodic edge conditions

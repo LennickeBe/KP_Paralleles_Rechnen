@@ -21,5 +21,6 @@ typedef struct
 board * init_board(int rows, int cols, int start_cells);
 void update_board(board *b, board *buf);
 board * create_board_copy(board *b);
+void synchronize_boards(board *target, board *source);
 bool board_compare(board *b1, board *b2);
 #endif
