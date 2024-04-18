@@ -96,7 +96,7 @@ void measure(size_t board_axis,
 		meas_times->start++;
 		meas_times->end++;
 
-		free(b1)
+		free(b1);
 	}
 	// reset pointer to start of timespec array
 	meas_times->start = *meas_times->starts;
