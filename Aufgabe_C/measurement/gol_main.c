@@ -95,11 +95,15 @@ void measure(size_t board_axis,
 		// move pointer in timespec areas
 		meas_times->start++;
 		meas_times->end++;
+
+		free(b1)
 	}
 	// reset pointer to start of timespec array
 	meas_times->start = *meas_times->starts;
 	meas_times->end = *meas_times->ends;
 
+	free(b);
+	free(buf);
 }
 
 
