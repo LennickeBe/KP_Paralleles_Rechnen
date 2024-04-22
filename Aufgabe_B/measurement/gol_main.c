@@ -135,8 +135,6 @@ int main (int argc, char* argv[])
 		path = concat(concat("../evaluation/data/", COMPILER_STR),
 			      concat("/", THREADS_STR));
 
-
-		//visualize(200, 10);
 		//32768x32768
 		measure(32768, meas_num, iterations[4], &meas_times[4]);	
 		//8192x8192
@@ -184,7 +182,7 @@ int main (int argc, char* argv[])
 
 		struct times meas_times;
 		FILE *file;
-		int meas_num = 20, iterations=1000;
+		int meas_num = 100, iterations=1000;
 
 		char *path, *filename;
 		path = concat(concat("../evaluation/data/", COMPILER_STR),
