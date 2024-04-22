@@ -42,7 +42,11 @@ void visualize(size_t board_axis, int iterations)
 	board *b, *b2, *tmp;
 	char buf[20];
 
-	b = init_board(board_axis, board_axis,0);
+	// random
+	//b = init_board(board_axis, board_axis, (board_axis * board_axis)/5);
+	//b2 = init_board(board_axis, board_axis, (board_axis * board_axis)/5); 
+	// glider
+	b = init_board(board_axis, board_axis, 0);
 	b2 = init_board(board_axis, board_axis, 0);
 	for (int i = 0; i < iterations; i++)
 	{
