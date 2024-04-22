@@ -73,8 +73,9 @@ void measure(size_t board_axis,
 	meas_times->end = *meas_times->ends;
 
 	// start board with 20%~ of the cells alive
-	b = init_board(board_axis, board_axis,(board_axis*board_axis)/8 );
-	buf = init_board(board_axis, board_axis,(board_axis*board_axis)/8 );
+	b = init_board(board_axis, board_axis,(board_axis*board_axis)/5 );
+	// buffer board empty
+	buf = init_board(board_axis, board_axis, 0);
 
 	// play the game with the same board multiple times
 	for (int j = 0; j < measurement_num; j++)
