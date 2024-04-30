@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --ntasks=16
+#SBATCH --ntasks=4
 #SBATCH --time=04:30:00
 #SBATCH --account=p_tei_ra_hpc_courses
 #SBATCH --job-name=kp_pr_aufgabe_b
