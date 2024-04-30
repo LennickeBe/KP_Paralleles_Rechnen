@@ -6,6 +6,7 @@
 #SBATCH --job-name=kp_pr_aufgabe_b
 #SBATCH --output=kp_pr_aufgabe_a_%j.out
 #SBATCH --error=kp_pr_aufgabe_a_%j.err
+#SBATCH --mem=5G
 
 # make sure run.sh is executable
 chmod u+x run.sh
