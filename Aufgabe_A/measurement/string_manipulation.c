@@ -1,7 +1,6 @@
 #include "string_manipulation.h"
 #include "string_manipulation_par.h"
 #include "string_manipulation_seq.h"
-#include <math.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
