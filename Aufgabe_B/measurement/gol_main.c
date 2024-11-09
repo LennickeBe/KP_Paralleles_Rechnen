@@ -7,17 +7,19 @@
 #include <string.h>
 #include <time.h>
 
+
 float get_time_diff_in_s(struct timespec *start, struct timespec *end)
 {
 	return ((end->tv_sec - start->tv_sec) +
 		((end->tv_nsec - start->tv_nsec) / 1000000000.0));
 }
 
+
 void write_times(FILE *file, int num, struct times *meas_times, int iterations)
 {
 	int i;
-
-	// header
+    
+    // header
 	fprintf(file, "time[s]\n");
 
 	// set pointer to start of timespec array
@@ -36,11 +38,11 @@ void write_times(FILE *file, int num, struct times *meas_times, int iterations)
 }
 
 
-
 void visualize(size_t board_axis, int iterations)
 {
 	board *b, *b2, *tmp;
 	char buf[20];
+
 
 	// random
 	//b = init_board(board_axis, board_axis, (board_axis * board_axis)/5);
@@ -110,7 +112,6 @@ void measure(size_t board_axis,
 }
 
 
-
 char* concat(char *s1, char *s2)
 {
     char *result;
@@ -122,6 +123,7 @@ char* concat(char *s1, char *s2)
     strcat(result, s2);
     return result;
 }
+
 
 int main (int argc, char* argv[])
 {
