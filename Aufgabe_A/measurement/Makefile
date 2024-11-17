@@ -1,4 +1,8 @@
-all: string_manipulation
+all: string_manipulation 
+ycm: compile_commands.json
+
+compile_commands.json:
+	bear -- make
 
 string_manipulation_par.o: string_manipulation_par.c
 	gcc -mavx2 -c string_manipulation_par.c

@@ -1,7 +1,11 @@
 gcc: gcc_gol_main
 icc: icc_gol_main
+ycm: compile_commands.json
 
 INCLUDE_DIR=./include
+
+compile_commands.json: threads
+	bear -- make
 
 threads:
 	if [ -z "${THREADS}" ]; then \
