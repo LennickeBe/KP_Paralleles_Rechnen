@@ -7,6 +7,15 @@ INCLUDE_DIR=./include
 compile_commands.json:
 	bear -- make gcc
 
+mpi_test.o:
+	mpicc -I ${INCLUDE_DIR} -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi -L/usr/lib/x86_64-linux-gnu/openmpi/lib -lmpi -c mpi_test.c
+
+mpi_test: gcc_visualize.o gcc_gol_board.o mpi_test.o
+	mpicc -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi -L/usr/lib/x86_64-linux-gnu/openmpi/lib -lmpi -o mpi_test mpi_test.o gol_board.o visualize.o
+
+mpi_clean:
+	rm gol_board.o mpi_test.o mpi_test visualize.o
+
 gcc_gol_board.o: gol_board.c
 	gcc -I ${INCLUDE_DIR} -c gol_board.c
 

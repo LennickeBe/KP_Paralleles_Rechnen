@@ -9,5 +9,5 @@ Implementieren Sie eine MPI-parallele Variante von Conways "Game-of-Life" mit pe
 - Nutzen Sie für die Berechnung eine geeignete Anzahl an Schleifendurchläufen (Zyklen des Spiels), sodass der genutzte Timer genau genug ist.
 - Achten Sie darauf, dass benachbarte Ranks möglichst nah beieinander gescheduled sind.
 - Nutzen Sie dafür die "romeo" Partition von taurus.
--Führen Sie jeweils 20 Messungen durch und analysieren Sie die Ergebnisse mit geeigneten statistischen Mitteln.
+- Führen Sie jeweils 20 Messungen durch und analysieren Sie die Ergebnisse mit geeigneten statistischen Mitteln.
 
